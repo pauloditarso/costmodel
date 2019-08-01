@@ -1,0 +1,101 @@
+findHosts <- function(SPhosts) {
+
+	if ( as.numeric(SPhosts[[1]][1]) != 0 ) {
+
+		answersDF <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), c("matchID", "spID", "req1", "req2", "req3", "providerID", "resourceID", "arg1", "arg2", "arg3"))
+		matchID <- 0
+		spID <- 0
+		req1 <- req2 <- req3 <- 0
+		providerID <- 0
+		resourceID <- 0
+		arg1 <- arg2 <- arg3 <- 0
+		finished <- FALSE
+
+		while(!finished) {
+
+			matchID <- matchID + 1
+			# auxDF <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), c("matchID", "spID", "req1", "req2", "req3", "providerID", "resourceID", "arg1", "arg2", "arg3"))
+			auxVet <- vector(length=length(SPhosts))
+
+			for ( i in 1:length(SPhosts) ) {
+
+				spID <- i
+				req1 <- as.numeric(SPhosts[[i]][1])
+				req2 <- as.numeric(SPhosts[[i]][2])
+				req3 <- as.numeric(SPhosts[[i]][3])
+
+				for ( j in 1:numberOfProviders ) {
+
+					providerID <- j
+					name <- paste("p", j, sep = "")
+					auxProvider <- providers[[name]]
+
+					for ( k in 1:length(auxProvider$hosts) ) {
+
+						resourceID <- k
+						arg1 <- as.numeric(auxProvider$hosts[[k]][1])
+						arg2 <- as.numeric(auxProvider$hosts[[k]][2])
+						arg3 <- as.numeric(auxProvider$hosts[[k]][3])
+
+						colnames(answersDF) <- c("matchID", "spID", "req1", "req2", "req3", "providerID", "resourceID", "arg1", "arg2", "arg3")
+						if ( nrow(answersDF[answersDF$matchID == matchID & answersDF$spID == i,]) == 0 ) {
+
+							if ( nrow(answersDF[answersDF$matchID == matchID & answersDF$providerID == j & answersDF$resourceID == k,]) == 0 ) {
+
+								if ( all((SPhosts[[i]] <= auxProvider$hosts[[k]]), na.rm = TRUE) ) {
+									
+									if ( nrow(answersDF[answersDF$matchID != matchID & (answersDF$spID == i & answersDF$providerID == j & answersDF$resourceID == k),]) > 0 ) { 
+										auxVet[i] <- TRUE 
+									} 
+									else { 
+										auxVet <- FALSE
+									}
+
+									if ( !all(auxVet, na.rm=TRUE) ) {
+										answersDF <- rbind( answersDF, c("matchID"=matchID, "spID"=spID, "req1"=req1, "req2"=req2, "req3"=req3, "providerID"=providerID, "resourceID"=resourceID, "arg1"=arg1, "arg2"=arg2, "arg3"=arg3) )
+									}
+
+									# print(answersDF)
+
+								}
+
+							}
+
+						}
+
+					}
+
+				}
+
+			}
+
+			# if ( length(auxVet) != length(SPhosts) & all(auxVet, na.rm=TRUE) ) {
+
+			# 	matchID <- matchID - 1
+
+			# }
+			# else {
+				# answersDF <- rbind(answersDF, auxDF)	
+			# }
+
+			
+
+			if ( answersDF$spID[length(answersDF$spID)] < length(SPhosts) ) {
+
+				answersDF <- answersDF[-c(as.numeric(row.names(answersDF[answersDF$matchID == matchID,]))),]
+				finished <- TRUE
+
+			}
+
+			if ( matchID == 10 ) finished <- TRUE
+
+		}		
+
+		print(answersDF)
+
+	}
+	else {
+		return(-1)
+	}
+
+}

@@ -1,0 +1,26 @@
+findHosts <- function(SPhosts) {
+
+	hostsDF <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), c("matchID", "spID", "req1", "req2", "req3", "providerID", "resourceID", "arg1", "arg2", "arg3"))
+	#hostsDF <- data.frame()
+	
+	for ( i in 1:length(SPhosts) ) {
+
+		# resource <- SPhosts[[i]]
+		# auxDF <- setNames(data.frame(matrix(ncol = 10, nrow = 0)), c("matchID", "spID", "req1", "req2", "req3", "providerID", "resourceID", "arg1", "arg2", "arg3"))
+		# auxDF <- findMatchResource(resource, "hosts")
+
+		# if ( length(auxDF) > 0 ) rbind(hostsDF, auxDF)
+		# hostsDF <- rbind(hostsDF, auxDF)
+
+		# if ( length(auxDF) == 0 ) {
+		# 	return(-1)
+		# }
+		# else {			
+		# 	hostDF <- rbind(hostsDF, auxDF)
+		# }
+		# hostDF <- rbind(hostsDF, auxDF)
+
+	}
+
+	print(hostsDF)
+}

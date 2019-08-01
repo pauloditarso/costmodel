@@ -1,0 +1,36 @@
+createOneSP <- function() {
+	# there is no treatment for SP profiles
+	# also, still needs a pricing definition
+
+	spEnv <- new.env()
+
+	numberOfHosts <- sample(2:8, size=1)
+	numberOfLinks <- sample(0:3, size=1)
+	numberOfNEs <- sample(0:3, size=1)
+
+	# number of hosts is always greater than 1
+	createHosts(numberOfHosts, spEnv)
+
+	if (numberOfLinks > 0) {
+		createLinks(numberOfLinks, spEnv)
+	}
+	else {
+		assign("link1", 0, envir=spEnv)
+	}
+
+	if (numberOfNEs > 0) {
+		createNEs(numberOfNEs, spEnv)
+	}
+	else {
+		assign("ne1", 0, envir=spEnv)
+	}
+
+	hosts <- lapply(ls(spEnv, pattern="host"), get, env=spEnv)
+	links <- lapply(ls(spEnv, pattern="link"), get, env=spEnv)
+	nes <- lapply(ls(spEnv, pattern="ne"), get, env=spEnv)
+
+	SP <- list(hosts, links, nes)
+	names(SP) <- c("hosts", "links", "nes")
+	return(SP)
+
+}
