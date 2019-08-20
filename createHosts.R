@@ -8,7 +8,7 @@ createHosts <- function(numberOfHosts, env) {
 
 		for (i in 1:numberOfHosts) {
 			auxName <- paste("host", i, sep="")
-			assign(auxName, c('cpu' = cpu[i], 'men' = mem[i], 'str' = str[i]), envir = env)
+			assign(auxName, c('cpu' = cpu[i], 'mem' = mem[i], 'str' = str[i]), envir = env)
 		}
 	}
 	else {
