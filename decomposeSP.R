@@ -1,6 +1,6 @@
 decomposeSP <- function(SP, resource) {
 
-	SPaux <- data.frame()
+	SPaux <- data.frame(matrix(ncol=3, nrow=0))
 	
 	if ( length(SP[[paste(resource)]][[1]]) == 3 ) {
 

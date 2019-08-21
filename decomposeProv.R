@@ -1,6 +1,6 @@
 decomposeProv <- function(providers, resource) {
 
-	auxProv <- data.frame()
+	auxProv <- data.frame(matrix(ncol=4, nrow=0))
 
 	for (i in 1:length(providers)) {
 
