@@ -20,6 +20,7 @@ indexes <- function(numberOfRequests, numberOfResources) {
 
 	}
 
+	rm(i,j)
 	allCombinations
 
 }
