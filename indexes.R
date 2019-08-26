@@ -1,12 +1,14 @@
 indexes <- function(numberOfRequests, numberOfResources) {
 
+  if (numberOfRequests == 0) return -1
+  
 	library(gtools)
 
 	requests <- permutations(numberOfRequests, numberOfRequests)
 	resources <- combinations(numberOfResources, numberOfRequests)
-
+	
 	if ( ncol(requests) > nrow(resources) ) return -1
-
+	
 	allCombinations <- data.frame()
 
 	for ( i in 1:nrow(requests) ) {

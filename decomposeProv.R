@@ -12,7 +12,6 @@ decomposeProv <- function(providers, resource) {
 				arg2 <- as.numeric(providers[[i]][[paste(resource)]][[j]][2])
 				arg3 <- as.numeric(providers[[i]][[paste(resource)]][[j]][3])
 
-				# auxProv <- rbind( auxProv, data.frame(providerID=i, resourceType=paste(resource), resourceID=j, arg1=arg1, arg2=arg2, arg3=arg3) )
 				auxProv <- rbind( auxProv, data.frame(providerID=i, resourceID=j, arg1=arg1, arg2=arg2, arg3=arg3) )
 				
 			}
