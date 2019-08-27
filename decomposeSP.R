@@ -10,6 +10,10 @@ decomposeSP <- function(SP, resource) {
 
 	}
 
+	if (resource == "hosts") { SPaux <- setNames(SPaux, c("cpu", "mem", "str")) }
+	if (resource == "links") { SPaux <- setNames(SPaux, c("cap", "del", "jit")) }
+	if (resource == "nes") { SPaux <- setNames(SPaux, c("cap", "por", "que")) }
+	
 	SPaux
 	
 }

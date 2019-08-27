@@ -20,6 +20,10 @@ decomposeProv <- function(providers, resource) {
 
 	} 
 
+	if (resource == "hosts") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cpu", "mem", "str")) }
+	if (resource == "links") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "del", "jit")) }
+	if (resource == "nes") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "por", "que")) }
+	
 	auxProv
 
 }

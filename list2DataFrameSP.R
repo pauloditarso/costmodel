@@ -1,6 +1,0 @@
-SPhosts <- data.frame()
-SPlinks <- data.frame()
-SPnes <- data.frame()
-SPhosts <- setNames(decomposeSP(SP, "hosts"), c("cpu", "mem", "str"))
-SPlinks <- setNames(decomposeSP(SP, "links"), c("cap", "del", "jit"))
-SPnes <- setNames(decomposeSP(SP, "nes"), c("cap", "por", "que"))

@@ -1,6 +1,0 @@
-Phosts <- data.frame()
-Plinks <- data.frame()
-Pnes <- data.frame()
-Phosts <- setNames(decomposeProv(providers, "hosts"), c("providerID", "resourceID", "cpu", "mem", "str"))
-Plinks <- setNames(decomposeProv(providers, "links"), c("providerID", "resourceID", "cap", "del", "jit"))
-Pnes <- setNames(decomposeProv(providers, "nes"), c("providerID", "resourceID", "cap", "por", "que"))
