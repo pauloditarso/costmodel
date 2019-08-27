@@ -1,3 +1,4 @@
+library(gtools)
 source('~/Workspace/R-workspace/costmodel/createHosts.R')
 source('~/Workspace/R-workspace/costmodel/createLinks.R')
 source('~/Workspace/R-workspace/costmodel/createNEs.R')
