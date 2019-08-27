@@ -1,12 +1,12 @@
-createOneSP <- function() {
+createOneSP <- function(numberOfHosts = 0, numberOfLinks = 0, numberOfNEs = 0) {
 	# there is no treatment for SP profiles
 	# also, still needs a pricing definition
 
 	spEnv <- new.env()
 
-	numberOfHosts <- sample(2:8, size=1)
-	numberOfLinks <- sample(0:3, size=1)
-	numberOfNEs <- sample(0:3, size=1)
+	if ( missing(numberOfHosts) ) { numberOfHosts <- sample(2:8, size=1) }
+	if ( missing(numberOfLinks) ) { numberOfLinks <- sample(0:3, size=1) }
+	if ( missing(numberOfNEs) ) { numberOfNEs <- sample(0:3, size=1) }
 
 	# number of hosts is always greater than 1
 	createHosts(numberOfHosts, spEnv)
