@@ -1,4 +1,4 @@
-hostsAnswers <- function(hostsCombinations) {
+hostsAnswers <- function(hostsCombinations, pricePerDay) {
 
   auxDF <- data.frame()
   
@@ -8,7 +8,11 @@ hostsAnswers <- function(hostsCombinations) {
     rightSide <- as.numeric(hostsCombinations[i,(ncol(hostsCombinations)/2+1):ncol(hostsCombinations)])
     
     if ( all(SPhosts[leftSide,] <= Phosts[rightSide, c("cpu", "mem", "str")], TRUE) ) {
-      auxDF <- rbind(auxDF, hostsCombinations[i,])
+      
+      if ( pricing(Phosts[rightSide,"cpu"][[1]],Phosts[rightSide,"mem"][[1]],Phosts[rightSide,"str"][[1]],0.0005)*24 <= pricePerDay ) {
+        auxDF <- rbind(auxDF, hostsCombinations[i,])
+      }
+
     }
     
   }

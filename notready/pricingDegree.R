@@ -1,4 +1,4 @@
-pricing <- function(lowerlimit, upperlimit, data) {
+pricingDegree <- function(lowerlimit, upperlimit, data) {
 	for (i in data) {
 		if( (0 <= data) & (data < 6) ) { print( (upperlimit+lowerlimit)/2 ) }
 		if( (6 <= data) & (data < 12) ) { print( lowerlimit ) }
