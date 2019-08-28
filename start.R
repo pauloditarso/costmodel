@@ -1,11 +1,21 @@
-source('~/Workspace/R-workspace/costmodel/sourceAll.R')
+source('./sourceAll.R')
 
-SP <- createOneSP(4, 2, 1)
+if ( exists("SPConfig") ) {
+  SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
+} else {
+  SP <- createOneSP()
+}
+
 SPhosts <- decomposeSP(SP, "hosts")
 SPlinks <- decomposeSP(SP, "links")
 SPnes <- decomposeSP(SP, "nes")
 
-P <- createProviders(2)
+if ( exists("numberOfProviders") ) {
+  P <- createProviders(numberOfProviders)
+} else {
+  P <- createProviders(2)  
+}
+
 Phosts <- decomposeProv(P, "hosts")
 Plinks <- decomposeProv(P, "links")
 Pnes <- decomposeProv(P, "nes")
