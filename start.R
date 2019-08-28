@@ -1,5 +1,9 @@
 source('./sourceAll.R')
 
+referenceHost <- c(1, 4, 128, 0.1)
+referenceLink <- c(1, 1, 1, 0.2)
+referenceNE <- c(1, 6, 1, 0.2)
+
 if ( exists("SPConfig") ) {
   SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
 } else {
