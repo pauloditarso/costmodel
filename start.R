@@ -25,7 +25,7 @@ linksComb <- indexes(nrow(SPlinks), nrow(Plinks))
 nesComb <- indexes(nrow(SPnes), nrow(Pnes))
 
 hostsDF <- hostsAnswers(hostsComb, 25)
-linksDF <- linksAnswers(linksComb, 25)
-nesDF <- nesAnswers(nesComb, 25)
+linksDF <- linksAnswers(linksComb, 5)
+nesDF <- nesAnswers(nesComb, 5)
 
 if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) { print("There is no valid answer!!") }

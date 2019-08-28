@@ -1,6 +1,8 @@
 linksAnswers <- function(linksCombinations, pricePerDay) {
   
   auxDF <- data.frame()
+  price <- vector()
+  
   if ( !exists("providersFactor", envir = .GlobalEnv) ) providersFactor <- 0.0005
   
   for (i in 1:nrow(linksCombinations)) {
@@ -10,7 +12,11 @@ linksAnswers <- function(linksCombinations, pricePerDay) {
     
     if ( all(SPlinks[leftSide,] <= Plinks[rightSide, c("cap", "del", "jit")], TRUE) ) {
       
-      if ( pricing(Plinks[rightSide,"cap"][[1]],Plinks[rightSide,"del"][[1]],Plinks[rightSide,"jit"][[1]],providersFactor)*24 <= pricePerDay ) {
+      priceAux <- 0
+      priceAux <- pricing(Plinks[rightSide,"cap"][[1]],Plinks[rightSide,"del"][[1]],Plinks[rightSide,"jit"][[1]],providersFactor)*24
+      
+      if ( priceAux <= pricePerDay ) {
+        price <- c(price, priceAux)
         auxDF <- rbind(auxDF, linksCombinations[i,])
       }
       
@@ -18,6 +24,7 @@ linksAnswers <- function(linksCombinations, pricePerDay) {
     
   }
   
+  auxDF <- cbind(auxDF, price)
   auxDF
   
 }

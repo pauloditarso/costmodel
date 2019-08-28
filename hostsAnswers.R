@@ -1,6 +1,8 @@
 hostsAnswers <- function(hostsCombinations, pricePerDay) {
 
   auxDF <- data.frame()
+  price <- vector()
+  
   if ( !exists("providersFactor", envir = .GlobalEnv) ) providersFactor <- 0.0005
   
   for (i in 1:nrow(hostsCombinations)) {
@@ -10,7 +12,11 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
     
     if ( all(SPhosts[leftSide,] <= Phosts[rightSide, c("cpu", "mem", "str")], TRUE) ) {
       
-      if ( pricing(Phosts[rightSide,"cpu"][[1]],Phosts[rightSide,"mem"][[1]],Phosts[rightSide,"str"][[1]],providersFactor)*24 <= pricePerDay ) {
+      priceAux <- 0
+      priceAux <- pricing(Phosts[rightSide,"cpu"][[1]],Phosts[rightSide,"mem"][[1]],Phosts[rightSide,"str"][[1]],providersFactor)*24 
+      
+      if ( priceAux <= pricePerDay ) {
+        price <- c(price, priceAux)
         auxDF <- rbind(auxDF, hostsCombinations[i,])
       }
 
@@ -18,6 +24,7 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
     
   }
    
+  auxDF <- cbind(auxDF, price)
   auxDF
 
 }
