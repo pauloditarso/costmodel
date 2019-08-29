@@ -3,7 +3,7 @@ nesAnswers <- function(nesCombinations, pricePerDay) {
   auxDF <- data.frame()
   price <- vector()
   
-  if ( !exists("providersFactor", envir = .GlobalEnv) ) providersFactor <- 0.0005
+  #  if ( !exists("providersFactor", envir = .GlobalEnv) ) providersFactor <- 0.0005
   
   for (i in 1:nrow(nesCombinations)) {
     
@@ -13,7 +13,10 @@ nesAnswers <- function(nesCombinations, pricePerDay) {
     if ( all(SPnes[leftSide,] <= Pnes[rightSide, c("cap", "por", "que")], TRUE) ) {
       
       priceAux <- 0
-      priceAux <- pricing(Pnes[rightSide,"cap"][[1]],Pnes[rightSide,"por"][[1]],Pnes[rightSide,"que"][[1]],providersFactor)*24
+      arg1 <- Pnes[rightSide,"cap"][[1]]
+      arg2 <- Pnes[rightSide,"por"][[1]]
+      arg3 <- Pnes[rightSide,"que"][[1]]
+      priceAux <- pricing(arg1, arg2, arg3, "nes")*24 
       
       if ( priceAux <= pricePerDay ) {
         price <- c(price, priceAux)

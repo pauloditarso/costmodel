@@ -1,9 +1,21 @@
 source('./sourceAll.R')
 
+print("defining reference resources!!")
 referenceHost <- c(1, 4, 128, 0.1)
-referenceLink <- c(1, 1, 1, 0.2)
+referenceLink <- c(1, 1, 4, 0.2)
 referenceNE <- c(1, 6, 1, 0.2)
 
+if ( !exists("priceHostPerDay") ) {
+  priceHostPerDay <- 25
+}
+if ( !exists("priceLinkPerDay") ) {
+  priceLinkPerDay <- 25
+}
+if ( !exists("priceNEPerDay") ) {
+  priceNEPerDay <- 25
+}
+
+print("defining SP resources!!")
 if ( exists("SPConfig") ) {
   SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
 } else {
@@ -14,6 +26,7 @@ SPhosts <- decomposeSP(SP, "hosts")
 SPlinks <- decomposeSP(SP, "links")
 SPnes <- decomposeSP(SP, "nes")
 
+print("defining providers resources!!")
 if ( exists("numberOfProviders") ) {
   P <- createProviders(numberOfProviders)
 } else {
@@ -24,12 +37,18 @@ Phosts <- decomposeProv(P, "hosts")
 Plinks <- decomposeProv(P, "links")
 Pnes <- decomposeProv(P, "nes")
 
+print("defining hosts combinations!!")
 hostsComb <- indexes(nrow(SPhosts), nrow(Phosts))
+print("defining links combinations!!")
 linksComb <- indexes(nrow(SPlinks), nrow(Plinks))
+print("defining nes combinations!!")
 nesComb <- indexes(nrow(SPnes), nrow(Pnes))
 
-hostsDF <- hostsAnswers(hostsComb, 25)
-linksDF <- linksAnswers(linksComb, 5)
-nesDF <- nesAnswers(nesComb, 5)
+print("defining hosts answers!!")
+hostsDF <- hostsAnswers(hostsComb, priceHostPerDay)
+print("defining links answers!!")
+linksDF <- linksAnswers(linksComb, priceLinkPerDay)
+print("defining nes answers!!")
+nesDF <- nesAnswers(nesComb, priceNEPerDay)
 
 if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) { print("There is no valid answer!!") }
