@@ -1,4 +1,10 @@
+rm(list = ls())
 source('./sourceAll.R')
+SPConfig<-c(2,2,1)
+numberOfProviders<-5
+priceHostPerDay<-30
+priceLinkPerDay<-30
+priceNEPerDay<-30
 
 print("defining reference resources!!")
 referenceHost <- c(1, 4, 128, 0.1)
