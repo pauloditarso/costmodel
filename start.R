@@ -1,6 +1,6 @@
 rm(list = ls())
 source('./sourceAll.R')
-SPConfig<-c(2,2,1)
+SPConfig<-c(4,2,1)
 numberOfProviders<-5
 priceHostPerDay<-30
 priceLinkPerDay<-30
