@@ -34,8 +34,11 @@ if ( exists("numberOfProviders") ) {
 }
 
 Phosts <- decomposeProv(P, "hosts")
+print(paste(nrow(Phosts), "hosts"))
 Plinks <- decomposeProv(P, "links")
+print(paste(nrow(Plinks), "links"))
 Pnes <- decomposeProv(P, "nes")
+print(paste(nrow(Pnes), "nes"))
 
 print("defining hosts combinations!!")
 hostsComb <- indexes(nrow(SPhosts), nrow(Phosts))
