@@ -7,6 +7,7 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
   
   for (i in 1:nrow(hostsCombinations)) {
     
+    print(i)
     leftSide <- as.numeric(hostsCombinations[i,1:(ncol(hostsCombinations)/2)])
     rightSide <- as.numeric(hostsCombinations[i,(ncol(hostsCombinations)/2+1):ncol(hostsCombinations)])
     
