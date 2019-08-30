@@ -2,10 +2,10 @@ indexes <- function(numberOfRequests, numberOfResources) {
 
   if (numberOfRequests == 0 | numberOfRequests > numberOfResources) return -1
   
-	library(gtools)
+	#library(gtools)
 
-	requests <- permutations(numberOfRequests, numberOfRequests)
-	resources <- combinations(numberOfResources, numberOfRequests)
+	requests <- gtools::permutations(numberOfRequests, numberOfRequests)
+	resources <- gtools::combinations(numberOfResources, numberOfRequests)
 	
 	#if ( ncol(requests) > nrow(resources) ) return -1
 	
