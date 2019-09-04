@@ -1,7 +1,7 @@
 rm(list = ls())
 source('./sourceAll.R')
-SPConfig<-c(2,2,1)
-numberOfProviders<-4
+SPConfig<-c(3,2,1)
+numberOfProviders<-3
 priceHostPerDay<-100
 priceLinkPerDay<-100
 priceNEPerDay<-100
@@ -34,7 +34,7 @@ SPnes <- decomposeSP(SP, "nes")
 
 print("defining providers resources!!")
 if ( exists("numberOfProviders") ) {
-  P <- createProviders(numberOfProviders)
+  P <- createProviders(numberOfProviders, 4, 4, 2)
 } else {
   P <- createProviders(2)  
 }

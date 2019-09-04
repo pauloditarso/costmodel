@@ -3,11 +3,8 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
   auxDF <- data.frame()
   price <- vector()
   
-#  if ( !exists("providersFactor", envir = .GlobalEnv) ) providersFactor <- 0.0005
-  
   for (i in 1:nrow(hostsCombinations)) {
     
-    print(i)
     leftSide <- as.numeric(hostsCombinations[i,1:(ncol(hostsCombinations)/2)])
     rightSide <- as.numeric(hostsCombinations[i,(ncol(hostsCombinations)/2+1):ncol(hostsCombinations)])
     
