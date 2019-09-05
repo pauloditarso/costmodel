@@ -10,14 +10,19 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
     
     if ( all(SPhosts[leftSide,] <= Phosts[rightSide, c("cpu", "mem", "str")], TRUE) ) {
       
-      priceAux <- 0
-      arg1 <- Phosts[rightSide,"cpu"][[1]]
-      arg2 <- Phosts[rightSide,"mem"][[1]]
-      arg3 <- Phosts[rightSide,"str"][[1]]
-      priceAux <- pricing(arg1, arg2, arg3, "hosts")*24 
+      priceAux <- vector()
       
-      if ( priceAux <= pricePerDay ) {
-        price <- c(price, priceAux)
+      for ( j in 1:length(rightSide) ) {
+        
+        arg1 <- Phosts[rightSide[j],"cpu"]
+        arg2 <- Phosts[rightSide[j],"mem"]
+        arg3 <- Phosts[rightSide[j],"str"]
+        priceAux <- c( priceAux, pricing(arg1, arg2, arg3, "hosts")*24 )
+        
+      }
+      
+      if ( all(priceAux <= pricePerDay, TRUE) ) {
+        price <- c( price, sum(priceAux) )
         auxDF <- rbind(auxDF, hostsCombinations[i,])
       }
 
