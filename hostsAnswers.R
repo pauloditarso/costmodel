@@ -11,13 +11,25 @@ hostsAnswers <- function(hostsCombinations, pricePerDay) {
     if ( all(SPhosts[leftSide,] <= Phosts[rightSide, c("cpu", "mem", "str")], TRUE) ) {
       
       priceAux <- vector()
+      lastProvider <- 0
+      penalty <- 1.1
       
       for ( j in 1:length(rightSide) ) {
         
+        actualProvider <- Phosts[rightSide[j], "providerID"]
         arg1 <- Phosts[rightSide[j],"cpu"]
         arg2 <- Phosts[rightSide[j],"mem"]
         arg3 <- Phosts[rightSide[j],"str"]
-        priceAux <- c( priceAux, pricing(arg1, arg2, arg3, "hosts")*24 )
+        
+        if (lastProvider == actualProvider) {
+          priceAux <- c( priceAux, pricing(arg1, arg2, arg3, "hosts")*24*penalty)
+          penalty <- penalty + 0.1
+        }
+        else {
+          priceAux <- c( priceAux, pricing(arg1, arg2, arg3, "hosts")*24 )
+        }
+        
+        lastProvider <- actualProvider
         
       }
       
