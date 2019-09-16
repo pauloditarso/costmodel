@@ -1,10 +1,11 @@
-rm(list = ls())
+#rm(list = ls())
 source('./sourceAll.R')
 SPConfig<-c(2,2,1)
-numberOfProviders<-1
+#numberOfProviders<-2
 priceHostPerDay<-100
 priceLinkPerDay<-100
 priceNEPerDay<-100
+pricingType <- "fixed"
 
 #print("defining reference resources!!")
 referenceHost <- c(1, 4, 128, 0.1)
@@ -54,10 +55,14 @@ linksComb <- indexes(nrow(SPlinks), nrow(Plinks))
 nesComb <- indexes(nrow(SPnes), nrow(Pnes))
 
 #print("defining hosts answers!!")
-hostsDF <- hostsAnswers(hostsComb, priceHostPerDay)
+hostsDF <- hostsAnswers(hostsComb, priceHostPerDay, pricingType)
 #print("defining links answers!!")
-linksDF <- linksAnswers(linksComb, priceLinkPerDay)
+linksDF <- linksAnswers(linksComb, priceLinkPerDay, pricingType)
 #print("defining nes answers!!")
-nesDF <- nesAnswers(nesComb, priceNEPerDay)
+nesDF <- nesAnswers(nesComb, priceNEPerDay, pricingType)
 
-if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) { print("There is no valid answer!!") }
+if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) { 
+  failed <- TRUE
+} else {
+  failed <- FALSE
+}

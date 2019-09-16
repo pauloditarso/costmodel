@@ -1,4 +1,3 @@
-#library(gtools)
 source('./createHosts.R')
 source('./createLinks.R')
 source('./createNEs.R')
