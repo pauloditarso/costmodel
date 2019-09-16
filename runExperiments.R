@@ -73,3 +73,4 @@ for ( i in 1:10 ) {
 
 resultsList <- ls(pattern = "results")
 rm(list = setdiff(ls(), resultsList))
+save.image()
