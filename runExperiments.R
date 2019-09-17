@@ -2,7 +2,7 @@ rm(list = ls())
 source('./sourceAll.R')
 SPConfig<-c(2,2,1)
 numberOfProviders <- 0
-numberOfTurns <- 5
+numberOfTurns <- 30
 priceHostPerDay <- 10000
 priceLinkPerDay <- 10000
 priceNEPerDay <- 10000
