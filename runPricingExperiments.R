@@ -9,7 +9,7 @@ priceNEPerDay <- 10000
 pricingType <- "fixed"
 
 referenceHost <- c(1, 4, 128, 0.1)
-referenceLink <- c(1, 1, 4, 0.2)
+referenceLink <- c(1, 4, 4, 0.2)
 referenceNE <- c(1, 6, 1, 0.2)
 
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
@@ -47,19 +47,25 @@ for ( i in 1:numberOfTurns) {
     }
     
   }
-
-  auxHosts <- paste("hostsDF_", i, sep = "")
-  assign(auxHosts, hostsDF, envir = .GlobalEnv)
-  rm(auxHosts, hostsDF)  
-  auxLinks <- paste("linksDF_", i, sep = "")
-  assign(auxLinks, linksDF, envir = .GlobalEnv)
-  rm(auxLinks, linksDF)  
-  auxNEs <- paste("nesDF_", i, sep = "")
-  assign(auxNEs, nesDF, envir = .GlobalEnv)
-  rm(auxNEs, nesDF)
+  
+  hostsResults <- resultsComputation("hosts")
+  linksResults <- resultsComputation("links")
+  nesResults <- resultsComputation("nes")
+  
+  auxHosts <- paste("hostsResults_", i, sep = "")
+  assign(auxHosts, hostsResults, envir = .GlobalEnv)
+  rm(auxHosts, hostsResults)
+  
+  auxLinks <- paste("linksResults_", i, sep = "")
+  assign(auxLinks, linksResults, envir = .GlobalEnv)
+  rm(auxLinks, linksResults)
+  
+  auxNEs <- paste("nesResults_", i, sep = "")
+  assign(auxNEs, nesResults, envir = .GlobalEnv)
+  rm(auxNEs, nesResults)
   
 }
 
-resultsList <- ls(pattern = "DF")
+resultsList <- ls(pattern = "_")
 rm(list = setdiff(ls(), resultsList))
 save.image()
