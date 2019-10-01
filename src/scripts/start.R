@@ -1,5 +1,5 @@
 #rm(list = ls())
-source('./sourceAll.R')
+source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
 #numberOfProviders<-2
 priceHostPerDay<-100

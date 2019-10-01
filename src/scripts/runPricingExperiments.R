@@ -1,5 +1,5 @@
 rm(list = ls())
-source('./sourceAll.R')
+source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
 numberOfProviders <- 5
 numberOfTurns <- 2
@@ -41,7 +41,7 @@ for ( i in 1:numberOfTurns) {
     
     if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) {
       seed <- (seed + sample(1:1000,1))
-      source('./desourceAll.R')
+      source('./src/scripts/desourceAll.R')
     } else {
       valid <- TRUE
     }

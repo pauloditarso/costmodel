@@ -1,5 +1,5 @@
 rm(list = ls())
-source('./sourceAll.R')
+source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
 numberOfProviders <- 0
 numberOfTurns <- 1000
@@ -57,7 +57,7 @@ for ( i in 1:10 ) {
         valid <- TRUE  
       }
         
-      source('./desourceAll.R')
+      source('./src/scripts/desourceAll.R')
         
     }
       
