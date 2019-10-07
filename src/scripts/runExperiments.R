@@ -2,15 +2,15 @@ rm(list = ls())
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
 numberOfProviders <- 0
-numberOfTurns <- 1000
-priceHostPerDay <- 10000
-priceLinkPerDay <- 10000
-priceNEPerDay <- 10000
+numberOfTurns <- 2
+priceHostPerDay <- 100000
+priceLinkPerDay <- 100000
+priceNEPerDay <- 100000
 pricingType <- "fixed"
-  
+
 referenceHost <- c(1, 4, 128, 0.1)
-referenceLink <- c(1, 4, 4, 0.2)
-referenceNE <- c(1, 6, 1, 0.2)
+referenceLink <- c(1, 1, 1, 2)
+referenceNE <- c(1, 6, 1, 2)
 
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
@@ -18,12 +18,14 @@ SPhosts <- decomposeSP(SP, "hosts")
 SPlinks <- decomposeSP(SP, "links")
 SPnes <- decomposeSP(SP, "nes")
   
-for ( i in 1:10 ) {
+for ( i in 1:20 ) {
   
   numberOfProviders <- i
   results <- vector()
     
   for ( j in 1:numberOfTurns) {
+    
+    print(paste("provider", i, "turn", j, sep = " "))
       
     valid <- FALSE
     count <- 0
@@ -71,6 +73,6 @@ for ( i in 1:10 ) {
     
 }
 
-resultsList <- ls(pattern = "results")
+resultsList <- ls(pattern = "results_")
 rm(list = setdiff(ls(), resultsList))
 save.image()

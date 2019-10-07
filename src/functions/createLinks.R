@@ -2,9 +2,9 @@ createLinks <- function(numberOfLinks, env) {
 	# still needs a pricing definition
 
 	if ( numberOfLinks > 0 && is.environment(env) ) {
-		capacity <- sort(sample(c(1, 5, 10, 50), size=numberOfLinks, replace=TRUE))
-		delay <- sort(sample(c(4, 3, 2, 1), size=numberOfLinks, replace=TRUE))
-		jitter <- sort(sample(c(4, 3, 2, 1), size=numberOfLinks, replace=TRUE))
+		capacity <- sort(sample(c(1, 2, 3, 4), size=numberOfLinks, replace=TRUE))
+		delay <- sort(sample(c(1, 2, 3, 4), size=numberOfLinks, replace=TRUE))
+		jitter <- sort(sample(c(1, 2, 3, 4), size=numberOfLinks, replace=TRUE))
 
 		for (i in 1:numberOfLinks) {
 			name <- paste("link", i, sep="")
