@@ -78,6 +78,7 @@ rm(list = setdiff(ls(), resultsList))
 
 results <- data.frame(matrix(nrow=1000,ncol=0))
 for (i in 1:20) { auxDF <- get( paste("results_", i, sep="") ) ; results <- cbind(results,auxDF) ; rm(auxDF) }
+rm(i)
 colnames(results) <- 1:20
 
 save.image()
