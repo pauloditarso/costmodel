@@ -77,7 +77,7 @@ resultsList <- ls(pattern = "results_")
 rm(list = setdiff(ls(), resultsList))
 
 results <- data.frame(matrix(nrow=1000,ncol=0))
-for (i in 1:20) { lixo <- get( paste("results_", i, sep="") ) ; results <- cbind(results,lixo) ; rm(lixo) }
+for (i in 1:20) { auxDF <- get( paste("results_", i, sep="") ) ; results <- cbind(results,auxDF) ; rm(auxDF) }
 colnames(results) <- 1:20
 
 save.image()
