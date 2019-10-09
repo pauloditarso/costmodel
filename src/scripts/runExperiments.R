@@ -12,6 +12,7 @@ referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
+#set.seed(1)
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
 SPhosts <- decomposeSP(SP, "hosts")
