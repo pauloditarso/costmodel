@@ -13,6 +13,7 @@ referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
+#set.seed()
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
 SPhosts <- decomposeSP(SP, "hosts")
@@ -25,8 +26,6 @@ for ( i in 1:20 ) {
   resultsVec <- vector()
     
   for ( j in 1:numberOfTurns) {
-    
-    print(paste("rate", i, "turn", j, sep = " "))
       
     valid <- FALSE
     count <- 0
@@ -65,6 +64,8 @@ for ( i in 1:20 ) {
     }
       
     resultsVec[j] <- count
+    
+    print(paste("offer rate", i, "turn", j, sep = " "))
       
   }
     

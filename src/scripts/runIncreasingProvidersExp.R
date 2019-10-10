@@ -12,7 +12,7 @@ referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
-#set.seed(1)
+#set.seed()
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
 SPhosts <- decomposeSP(SP, "hosts")
@@ -22,11 +22,9 @@ SPnes <- decomposeSP(SP, "nes")
 for ( i in 1:20 ) {
   
   numberOfProviders <- i
-  results <- vector()
+  resultsVec <- vector()
     
   for ( j in 1:numberOfTurns) {
-    
-    print(paste("provider", i, "turn", j, sep = " "))
       
     valid <- FALSE
     count <- 0
@@ -64,13 +62,16 @@ for ( i in 1:20 ) {
         
     }
       
-    results[j] <- count
+    resultsVec[j] <- count
+    
+    print(paste("# providers", i, "turn", j, sep = " "))
       
   }
     
   auxName <- paste("results_", numberOfProviders, sep = "")
-  assign(auxName, results, envir = .GlobalEnv)
-  rm(auxName, results)
+  assign(auxName, resultsVec, envir = .GlobalEnv)
+  rm(auxName, resultsVec)
+  save.image()
     
 }
 
