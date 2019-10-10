@@ -27,7 +27,7 @@ for ( i in 1:20 ) {
   for ( j in 1:numberOfTurns) {
       
     valid <- FALSE
-    count <- 0
+    count <- 1
       
     while(!valid)  {
         
