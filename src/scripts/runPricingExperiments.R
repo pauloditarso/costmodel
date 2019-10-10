@@ -12,12 +12,13 @@ referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
+#set.seed()
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
 SPhosts <- decomposeSP(SP, "hosts")
 SPlinks <- decomposeSP(SP, "links")
 SPnes <- decomposeSP(SP, "nes")
 
-for ( i in 1:numberOfTurns) {
+for ( i in 1:numberOfTurns ) {
   
   valid <- FALSE
   seed <- i
@@ -64,6 +65,7 @@ for ( i in 1:numberOfTurns) {
   assign(auxNEs, nesResults, envir = .GlobalEnv)
   rm(auxNEs, nesResults)
   
+  print(paste("turn ", i, sep = ""))
 }
 
 resultsList <- ls(pattern = "_")
