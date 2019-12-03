@@ -1,8 +1,10 @@
 rm(list = ls())
+start_time <- Sys.time()
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
-numberOfProviders <- 5
-numberOfTurns <- 2
+numberOfProviders <- 20
+numberOfTurns <- 100
+seed <- 1
 priceHostPerDay <- 10000
 priceLinkPerDay <- 10000
 priceNEPerDay <- 10000
@@ -12,7 +14,7 @@ referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
-#set.seed()
+set.seed(seed)
 SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
 SPhosts <- decomposeSP(SP, "hosts")
 SPlinks <- decomposeSP(SP, "links")
@@ -68,6 +70,21 @@ for ( i in 1:numberOfTurns ) {
   print(paste("turn ", i, sep = ""))
 }
 
-resultsList <- ls(pattern = "_")
-rm(list = setdiff(ls(), resultsList))
+# resultsList <- ls(pattern = "_")
+# rm(list = setdiff(ls(), resultsList))
+
+hostsPrices <- vector()
+linksPrices <- vector()
+nesPrices <- vector()
+
+for (i in 1:numberOfTurns) {
+  
+  hostsPrices[i] <- min(get(paste("hostsResults_", i, sep = ""))$price)
+  linksPrices[i] <- min(get(paste("linksResults_", i, sep = ""))$price)
+  nesPrices[i] <- min(get(paste("nesResults_", i, sep = ""))$price)
+}
+
+end_time <- Sys.time()
+total_time <- (end_time - start_time)
+print(total_time)
 save.image()
