@@ -1,4 +1,4 @@
-decomposeProv <- function(providers, resource) {
+decomposeProv <- function(providers, resource, minResource) {
 
 	auxProv <- data.frame(matrix(ncol=5, nrow=0))
 
@@ -12,7 +12,11 @@ decomposeProv <- function(providers, resource) {
 				arg2 <- as.numeric(providers[[i]][[paste(resource)]][[j]][2])
 				arg3 <- as.numeric(providers[[i]][[paste(resource)]][[j]][3])
 
-				auxProv <- rbind( auxProv, data.frame(providerID=i, resourceID=j, arg1=arg1, arg2=arg2, arg3=arg3) )
+				if ( arg1 >= as.numeric(minResource[1]) && arg2 >= as.numeric(minResource[2])
+				     && arg3 >= as.numeric(minResource[3]) ) {
+				  auxProv <- rbind( auxProv, data.frame(providerID=i, resourceID=j, arg1=arg1,
+				                                        arg2=arg2, arg3=arg3) )
+				}
 				
 			}
 

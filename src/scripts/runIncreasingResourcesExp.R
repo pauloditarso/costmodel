@@ -1,7 +1,7 @@
 rm(list = ls())
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
-numberOfProviders <- 1
+numberOfProviders <- 10
 rateResource <- 0
 numberOfTurns <- 2
 priceHostPerDay <- 100000
