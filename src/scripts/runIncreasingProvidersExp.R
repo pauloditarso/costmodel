@@ -1,9 +1,10 @@
 rm(list = ls())
-start_time <- Sys.time()
+print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(4,4,2)
-numberOfProviders <- 0
-numberOfTurns <- 1
+minNumberOfProviders <- 5
+maxNumberOfProviders <- 6
+numberOfTurns <- 30
 priceHostPerDay <- 100000
 priceLinkPerDay <- 100000
 priceNEPerDay <- 100000
@@ -26,7 +27,7 @@ SPnes <- decomposeSP(SP, "nes")
 minNEs <- data.frame(min(SPnes$cap), min(SPnes$por), min(SPnes$que))
 colnames(minNEs) <- c("cap", "por", "que")
 
-for ( i in 40:40 ) {
+for ( i in minNumberOfProviders:maxNumberOfProviders ) {
   
   numberOfProviders <- i
   resultsVec <- vector()
@@ -80,7 +81,7 @@ for ( i in 40:40 ) {
       
     resultsVec[j] <- count
     
-    print(paste("# providers", i, "turn", j, "time", Sys.time(), sep = " "))
+    print(paste("#providers", i, "turn", j, "time", Sys.time(), sep = " "))
       
   }
     
@@ -91,14 +92,14 @@ for ( i in 40:40 ) {
     
 }
 
+results_all <- data.frame(matrix(nrow=numberOfTurns,ncol=0))
+for (i in minNumberOfProviders:maxNumberOfProviders) { auxDF <- get( paste("results_", i, sep="") ) ; results_all <- cbind(results_all,auxDF) ; rm(auxDF) }
+rm(i)
+colnames(results_all) <- minNumberOfProviders:maxNumberOfProviders
+
+
 resultsList <- ls(pattern = "results_")
 rm(list = setdiff(ls(), resultsList))
 
-results <- data.frame(matrix(nrow=40,ncol=0))
-for (i in 40:40) { auxDF <- get( paste("results_", i, sep="") ) ; results <- cbind(results,auxDF) ; rm(auxDF) }
-rm(i)
-colnames(results) <- 40:40
-
-end_time <- Sys.time()
-total_time <- (end_time - start_time)
+print(paste("#time end", Sys.time(), sep = " "))
 save.image()
