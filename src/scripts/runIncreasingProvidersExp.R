@@ -1,4 +1,5 @@
 rm(list = ls())
+start_time <- Sys.time()
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(4,4,2)
 numberOfProviders <- 0
@@ -79,7 +80,7 @@ for ( i in 40:40 ) {
       
     resultsVec[j] <- count
     
-    print(paste("# providers", i, "turn", j, sep = " "))
+    print(paste("# providers", i, "turn", j, "time", Sys.time(), sep = " "))
       
   }
     
@@ -98,4 +99,6 @@ for (i in 40:40) { auxDF <- get( paste("results_", i, sep="") ) ; results <- cbi
 rm(i)
 colnames(results) <- 40:40
 
+end_time <- Sys.time()
+total_time <- (end_time - start_time)
 save.image()
