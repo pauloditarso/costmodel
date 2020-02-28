@@ -3,11 +3,11 @@ print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(4,4,2)
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 6
+maxNumberOfProviders <- 10
 numberOfTurns <- 30
-priceHostPerDay <- 100000
-priceLinkPerDay <- 100000
-priceNEPerDay <- 100000
+priceHostPerDay <- 0
+priceLinkPerDay <- 0
+priceNEPerDay <- 0
 pricingType <- "fixed"
 
 referenceHost <- c(1, 4, 128, 0.1)
@@ -26,6 +26,21 @@ colnames(minLinks) <- c("cap", "del", "jit")
 SPnes <- decomposeSP(SP, "nes")
 minNEs <- data.frame(min(SPnes$cap), min(SPnes$por), min(SPnes$que))
 colnames(minNEs) <- c("cap", "por", "que")
+
+# setting the price constraints per resources
+for ( m in 1:nrow(SPhosts) ) {
+  priceHostPerDay <- priceHostPerDay + (24 * pricing(as.numeric(SPhosts[m,][1]), as.numeric(SPhosts[m,][2]), as.numeric(SPhosts[m,][3]), "hosts"))
+}
+priceHostPerDay <- priceHostPerDay*1.5
+for ( l in 1:nrow(SPlinks) ) {
+  priceLinkPerDay <- priceLinkPerDay + (24 * pricing(as.numeric(SPlinks[l,][1]), as.numeric(SPlinks[l,][2]), as.numeric(SPlinks[m,][3]), "links"))
+}
+priceLinkPerDay <- priceLinkPerDay*1.5
+for ( n in 1:nrow(SPnes) ) {
+  priceNEPerDay <- priceNEPerDay + (24 * pricing(as.numeric(SPnes[n,][1]), as.numeric(SPnes[n,][2]), as.numeric(SPnes[n,][3]), "nes"))
+}
+priceNEPerDay <- priceNEPerDay*1.5
+
 
 for ( i in minNumberOfProviders:maxNumberOfProviders ) {
   
