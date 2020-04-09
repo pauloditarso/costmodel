@@ -3,8 +3,8 @@ print(paste("#time start", Sys.time(), sep = " "))
 start_time <- Sys.time()
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(4,4,2)
-numberOfProviders <- 3
-numberOfTurns <- 30
+numberOfProviders <- 4
+numberOfTurns <- 3
 #seed <- 1
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
@@ -42,15 +42,16 @@ for ( n in 1:nrow(SPnes) ) {
 }
 priceNEPerDay <- priceNEPerDay*1.5
 
+rm(m, l, n)
+
 
 for ( i in 1:numberOfTurns ) {
   
   valid <- FALSE
-  seed <- as.numeric(Sys.time())
+  seed <- i
+  set.seed(seed)
   
   while(!valid)  {
-
-    set.seed(seed)
 
     P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3])
     
@@ -73,8 +74,8 @@ for ( i in 1:numberOfTurns ) {
     }
     
     if ( nrow(hostsDF) == 0 | nrow(linksDF) == 0 | nrow(nesDF) == 0 ) {
-      #seed <- (seed + sample(1:1000,1))
-      seed <- as.numeric(Sys.time())
+      seed <- (seed + sample(1:1000,1))
+      # seed <- as.numeric(Sys.time())
       source('./src/scripts/desourceAll.R')
     } else {
       valid <- TRUE
@@ -100,6 +101,7 @@ for ( i in 1:numberOfTurns ) {
   
   print(paste("#turn", i, "time", Sys.time(), sep = " "))
 }
+rm(i, valid, seed, P, Phosts, Plinks, Pnes, hostsDF, linksDF, nesDF)
 
 # resultsList <- ls(pattern = "_")
 # rm(list = setdiff(ls(), resultsList))
@@ -114,9 +116,19 @@ for (i in 1:numberOfTurns) {
   linksPrices[i] <- min(get(paste("linksResults_", i, sep = ""))$price)
   nesPrices[i] <- min(get(paste("nesResults_", i, sep = ""))$price)
 }
+rm(i)
 
 end_time <- Sys.time()
 total_time <- (end_time - start_time)
-print(total_time)
 print(paste("#time end", Sys.time(), sep = " "))
+print(total_time)
+rm(list = ls(pattern = "create"))
+rm(list = ls(pattern = "Answers"))
+rm(list = ls(pattern = "PerDay"))
+rm(list = ls(pattern = "min"))
+rm(list = ls(pattern = "Comb"))
+rm(list = ls(pattern = "numberOf"))
+rm(list = ls(pattern = "reference"))
+rm(decomposeProv, decomposeSP)
+rm(indexes, pricing, resultsComputation, SP, pricingType)
 save.image()
