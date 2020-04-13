@@ -17,11 +17,11 @@ indexes <- function(numberOfRequests, numberOfResources) {
         aux <- c(requests[i,], resources[j,])
         allCombinations <- rbind(allCombinations, aux)
         
-        if (count == 1000) {
+        if (count == 5000) {
           break
         } 
       }
-      if (count == 1000) { break }
+      if (count == 5000) { break }
     }
     
     rm(i,j)
