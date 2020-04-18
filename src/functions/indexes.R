@@ -1,31 +1,38 @@
-indexes <- function(numberOfRequests, numberOfResources) {
+indexes <- function(numberOfRequests, numberOfResources, quota) {
   
   allCombinations <- data.frame()
-  count <- 0
   
   if ( numberOfRequests == 0 | (numberOfRequests > numberOfResources) ) {
     allCombinations
   }
   else {
+    
+    totalPermutaions <- factorial(numberOfRequests)
+    totalCombinations <- ( factorial(numberOfResources) /( totalPermutaions*(factorial(numberOfResources-numberOfRequests)) ) )
+    totalLength <- ( totalPermutaions * totalCombinations )
+    
     requests <- gtools::permutations(numberOfRequests, numberOfRequests)
     resources <- gtools::combinations(numberOfResources, numberOfRequests)
     
     for ( i in 1:nrow(requests) ) {
       
       for ( j in 1:nrow(resources) ) {
-        count <- count + 1
         aux <- c(requests[i,], resources[j,])
         allCombinations <- rbind(allCombinations, aux)
         
-        if (count == 9000) {
-          break
-        } 
       }
-      if (count == 9000) { break }
+  
     }
     
     rm(i,j)
-    allCombinations
+    # allCombinations
+    if ( quota == -1 ) {
+      allCombinations
+    }
+    else {
+      allCombinations[c(sample(nrow(allCombinations),min(quota,totalLength),replace = FALSE)),]
+    }
+
   }
 
 }

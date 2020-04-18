@@ -1,7 +1,7 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(4,4,2)
+SPConfig<-c(2,2,1)
 minNumberOfProviders <- 5
 maxNumberOfProviders <- 10
 numberOfTurns <- 30
@@ -9,6 +9,7 @@ priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
 pricingType <- "fixed"
+quota <- -1
 
 referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
@@ -65,15 +66,15 @@ for ( i in minNumberOfProviders:maxNumberOfProviders ) {
       nesDF <- data.frame()
       
       if ( nrow(SPhosts) < nrow(Phosts) ) { 
-        hostsComb <- indexes(nrow(SPhosts), nrow(Phosts)) 
+        hostsComb <- indexes(nrow(SPhosts), nrow(Phosts), quota) 
         hostsDF <- hostsAnswers(hostsComb, priceHostPerDay, pricingType)
       }
       if ( nrow(SPlinks) < nrow(Plinks) ) { 
-        linksComb <- indexes(nrow(SPlinks), nrow(Plinks)) 
+        linksComb <- indexes(nrow(SPlinks), nrow(Plinks), quota) 
         linksDF <- linksAnswers(linksComb, priceLinkPerDay, pricingType)
       }
       if ( nrow(SPnes) < nrow(Pnes) ) { 
-        nesComb <- indexes(nrow(SPnes), nrow(Pnes))
+        nesComb <- indexes(nrow(SPnes), nrow(Pnes), quota)
         nesDF <- nesAnswers(nesComb, priceNEPerDay, pricingType)
       }
       

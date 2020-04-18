@@ -3,13 +3,14 @@ print(paste("#time start", Sys.time(), sep = " "))
 start_time <- Sys.time()
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(4,4,2)
-numberOfProviders <- 4
-numberOfTurns <- 3
+numberOfProviders <- 5
+numberOfTurns <- 30
 #seed <- 1
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
 pricingType <- "fixed"
+quota <- 1000
 
 referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
@@ -59,9 +60,9 @@ for ( i in 1:numberOfTurns ) {
     Plinks <- decomposeProv(P, "links", minLinks)
     Pnes <- decomposeProv(P, "nes", minNEs)
 
-    hostsComb <- indexes(nrow(SPhosts), nrow(Phosts))
-    linksComb <- indexes(nrow(SPlinks), nrow(Plinks))
-    nesComb <- indexes(nrow(SPnes), nrow(Pnes))
+    hostsComb <- indexes(nrow(SPhosts), nrow(Phosts), quotq)
+    linksComb <- indexes(nrow(SPlinks), nrow(Plinks), quota)
+    nesComb <- indexes(nrow(SPnes), nrow(Pnes), quota)
 
     if ( nrow(hostsComb) != 0 & nrow(linksComb) != 0 & nrow(nesComb) != 0 ) {
       hostsDF <- hostsAnswers(hostsComb, priceHostPerDay, pricingType)
@@ -130,5 +131,5 @@ rm(list = ls(pattern = "Comb"))
 rm(list = ls(pattern = "numberOf"))
 rm(list = ls(pattern = "reference"))
 rm(decomposeProv, decomposeSP)
-rm(indexes, pricing, resultsComputation, SP, pricingType)
+rm(indexes, pricing, resultsComputation, SP, pricingType, quota)
 save.image()
