@@ -1,6 +1,6 @@
 decomposeProv <- function(providers, resource, minResource) {
 
-	auxProv <- data.frame(matrix(ncol=5, nrow=0))
+	auxProv <- data.frame(matrix(ncol=6, nrow=0))
 
 	for (i in 1:length(providers)) {
 
@@ -11,11 +11,12 @@ decomposeProv <- function(providers, resource, minResource) {
 				arg1 <- as.numeric(providers[[i]][[paste(resource)]][[j]][1])
 				arg2 <- as.numeric(providers[[i]][[paste(resource)]][[j]][2])
 				arg3 <- as.numeric(providers[[i]][[paste(resource)]][[j]][3])
+				auxPrice <- pricing(arg1, arg2, arg3, paste(resource))
 
 				if ( arg1 >= as.numeric(minResource[1]) && arg2 >= as.numeric(minResource[2])
 				     && arg3 >= as.numeric(minResource[3]) ) {
 				  auxProv <- rbind( auxProv, data.frame(providerID=i, resourceID=j, arg1=arg1,
-				                                        arg2=arg2, arg3=arg3) )
+				                                        arg2=arg2, arg3=arg3, price=auxPrice) )
 				}
 				
 			}
@@ -24,9 +25,9 @@ decomposeProv <- function(providers, resource, minResource) {
 
 	} 
 
-	if (resource == "hosts") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cpu", "mem", "str")) }
-	if (resource == "links") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "del", "jit")) }
-	if (resource == "nes") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "por", "que")) }
+	if (resource == "hosts") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cpu", "mem", "str", "price")) }
+	if (resource == "links") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "del", "jit", "price")) }
+	if (resource == "nes") { auxProv <- setNames(auxProv, c("providerID", "resourceID", "cap", "por", "que", "price")) }
 	
 	auxProv
 

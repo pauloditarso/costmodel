@@ -61,7 +61,7 @@ for ( providerID in unique(Phosts$providerID) ) {
     for ( demandID in 1:nrow(SPhosts) ) {
       
       if ( all( aux >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
-        print(SPhosts[demandID,])
+        print(aux[demandID,])
       }
       
     }
