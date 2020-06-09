@@ -60,7 +60,7 @@ for ( i in 1:numberOfTurns ) {
     Plinks <- decomposeProv(P, "links", minLinks)
     Pnes <- decomposeProv(P, "nes", minNEs)
 
-    hostsComb <- indexes(nrow(SPhosts), nrow(Phosts), quotq)
+    hostsComb <- indexes(nrow(SPhosts), nrow(Phosts), quota)
     linksComb <- indexes(nrow(SPlinks), nrow(Plinks), quota)
     nesComb <- indexes(nrow(SPnes), nrow(Pnes), quota)
 
