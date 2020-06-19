@@ -1,7 +1,7 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(2,2,1)
+SPConfig<-c(20,2,1)
 minNumberOfProviders <- 5
 maxNumberOfProviders <- 10
 numberOfTurns <- 30
@@ -44,7 +44,7 @@ priceNEPerDay <- priceNEPerDay*1.5
 
 rm(l, m, n)
 
-numberOfProviders <- 3
+numberOfProviders <- 100
 
 P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3])
 
@@ -52,24 +52,55 @@ Phosts <- decomposeProv(P, "hosts", minHosts)
 Plinks <- decomposeProv(P, "links", minLinks)
 Pnes <- decomposeProv(P, "nes", minNEs)
 
+if ( nrow(Phosts) < nrow(SPhosts) | nrow(Plinks) < nrow(SPlinks) | nrow(Pnes) < nrow(SPnes) ) {
+  rm(list = ls())
+  stop("ERROR: Response not available!!!")
+}
+
+fd <- file("exemplo.txt", "w")
+writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
+
 for ( providerID in unique(Phosts$providerID) ) {
 
+  finalStr <- "{"
+  
   for ( resourceID in Phosts[Phosts$providerID == providerID, ]$resourceID ) {
     
-    aux <- Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID, c("cpu", "mem", "str")]
+    auxProvResource <- Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID, c("cpu", "mem", "str", "price")]
+    auxCond <- FALSE
+    auxStr <- ""
     
     for ( demandID in 1:nrow(SPhosts) ) {
       
-      if ( all( aux >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
-        print(aux[demandID,])
+      if ( all( auxProvResource[c("cpu", "mem", "str")] >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
+        
+        if ( auxCond == FALSE ) {
+          auxStr <- paste(demandID)
+        }
+        else {
+          auxStr <- paste(auxStr, ",", demandID, sep = "")  
+        }
+        auxCond <- TRUE
       }
-      
+       
+    }
+    
+    if ( auxCond == TRUE ) { finalStr <- paste(finalStr, auxStr, ":", auxProvResource["price"], sep = " ") }
+  
+    if ( resourceID != tail(Phosts[Phosts$providerID == providerID, ]$resourceID, n=1)) {
+      finalStr <- paste(finalStr, ";", sep = " ")
+    }
+    else {
+      finalStr <- paste(finalStr, "}", sep = " ") 
     }
     
   }
 
+  writeLines( noquote(finalStr), con = fd, sep = "\n" )
 }
-rm(aux)
+# rm(aux)
+
+close(fd)
 
 print(paste("#time end", Sys.time(), sep = " "))
 
