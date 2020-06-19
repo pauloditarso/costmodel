@@ -1,7 +1,7 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(20,2,1)
+SPConfig<-c(100,8,4)
 minNumberOfProviders <- 5
 maxNumberOfProviders <- 10
 numberOfTurns <- 30
@@ -75,10 +75,10 @@ for ( providerID in unique(Phosts$providerID) ) {
       if ( all( auxProvResource[c("cpu", "mem", "str")] >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
         
         if ( auxCond == FALSE ) {
-          auxStr <- paste(demandID)
+          auxStr <- paste(demandID-1)
         }
         else {
-          auxStr <- paste(auxStr, ",", demandID, sep = "")  
+          auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
         }
         auxCond <- TRUE
       }
