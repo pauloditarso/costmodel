@@ -1,9 +1,9 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(100,8,4)
-minNumberOfProviders <- 5
-maxNumberOfProviders <- 10
+SPConfig<-c(64,64,32)
+# minNumberOfProviders <- 5
+# maxNumberOfProviders <- 10
 numberOfTurns <- 30
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
@@ -44,7 +44,7 @@ priceNEPerDay <- priceNEPerDay*1.5
 
 rm(l, m, n)
 
-numberOfProviders <- 100
+numberOfProviders <- 10
 
 P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3])
 
@@ -57,7 +57,12 @@ if ( nrow(Phosts) < nrow(SPhosts) | nrow(Plinks) < nrow(SPlinks) | nrow(Pnes) < 
   stop("ERROR: Response not available!!!")
 }
 
-fd <- file("exemplo.txt", "w")
+if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
+  rm(list = ls())
+  stop("ERROR: Less providers than original amount!!!")
+}
+
+fd <- file(paste("./files/eg", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" ), "w")
 writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
 
 for ( providerID in unique(Phosts$providerID) ) {
@@ -104,3 +109,7 @@ close(fd)
 
 print(paste("#time end", Sys.time(), sep = " "))
 
+bashCommand <- paste("bash files/count.sh files/eg", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
+testBash <- as.numeric(system(bashCommand, intern = TRUE))
+testProv <- tabulate(Phosts$providerID)
+if (any(testBash != testProv)) print("ERROR: tests are different!!!")
