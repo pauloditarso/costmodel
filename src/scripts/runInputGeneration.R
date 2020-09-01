@@ -1,13 +1,14 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(64,64,32)
+SPConfig<-c(2,2,1)
 # minNumberOfProviders <- 5
 # maxNumberOfProviders <- 10
 numberOfTurns <- 30
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
+increasePriceFactor <- 1.5
 pricingType <- "fixed"
 quota <- -1
 
@@ -32,15 +33,17 @@ colnames(minNEs) <- c("cap", "por", "que")
 for ( m in 1:nrow(SPhosts) ) {
   priceHostPerDay <- priceHostPerDay + (24 * pricing(as.numeric(SPhosts[m,][1]), as.numeric(SPhosts[m,][2]), as.numeric(SPhosts[m,][3]), "hosts"))
 }
-priceHostPerDay <- priceHostPerDay*1.5
+priceHostPerDay <- priceHostPerDay * increasePriceFactor
+
 for ( l in 1:nrow(SPlinks) ) {
   priceLinkPerDay <- priceLinkPerDay + (24 * pricing(as.numeric(SPlinks[l,][1]), as.numeric(SPlinks[l,][2]), as.numeric(SPlinks[m,][3]), "links"))
 }
-priceLinkPerDay <- priceLinkPerDay*1.5
+priceLinkPerDay <- priceLinkPerDay * increasePriceFactor
+
 for ( n in 1:nrow(SPnes) ) {
   priceNEPerDay <- priceNEPerDay + (24 * pricing(as.numeric(SPnes[n,][1]), as.numeric(SPnes[n,][2]), as.numeric(SPnes[n,][3]), "nes"))
 }
-priceNEPerDay <- priceNEPerDay*1.5
+priceNEPerDay <- priceNEPerDay * increasePriceFactor
 
 rm(l, m, n)
 
@@ -62,7 +65,7 @@ if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
   stop("ERROR: Less providers than original amount!!!")
 }
 
-fd <- file(paste("./files/eg", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" ), "w")
+fd <- file(paste("./files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" ), "w")
 writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
 
 for ( providerID in unique(Phosts$providerID) ) {
@@ -109,7 +112,7 @@ close(fd)
 
 print(paste("#time end", Sys.time(), sep = " "))
 
-bashCommand <- paste("bash files/count.sh files/eg", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
+bashCommand <- paste("bash files/count.sh files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
 testBash <- as.numeric(system(bashCommand, intern = TRUE))
 testProv <- tabulate(Phosts$providerID)
 if (any(testBash != testProv)) print("ERROR: tests are different!!!")
