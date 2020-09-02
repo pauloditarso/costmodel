@@ -60,6 +60,8 @@ if ( nrow(Phosts) < nrow(SPhosts) | nrow(Plinks) < nrow(SPlinks) | nrow(Pnes) < 
   stop("ERROR: Response not available!!!")
 }
 
+
+####### confs for hosts #######
 if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
   rm(list = ls())
   stop("ERROR: Less providers than original amount!!!")
