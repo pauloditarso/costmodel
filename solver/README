@@ -1,0 +1,7 @@
+apt install glpk-utils
+./generate_lp.py ex2.txt > a.lp
+glpsol --lp a.lp -o result
+
+#cat result | grep 'x_' | awk '$4==1 {print $2}'
+cat result | awk 'NF==2 { printf $0 " "; getline; print} NF>2 {print}' | grep 'x_' | awk '$4==1 {print $2}'
+
