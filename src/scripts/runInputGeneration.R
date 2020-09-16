@@ -1,7 +1,7 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(2,2,1)
+SPConfig<-c(4,4,2)
 numberOfProviders <- 10
 # minNumberOfProviders <- 5
 # maxNumberOfProviders <- 10
@@ -20,12 +20,18 @@ referenceNE <- c(1, 6, 1, 2)
 #set.seed()
 
 satisfied <- FALSE
+numberOTrials <- 0
 while(!satisfied) {
+  
+  numberOTrials <- numberOTrials + 1
+  if (numberOTrials == 1000) { stop("ERROR: infinite loop!!!") }
+  
   SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
   if( length(SP$hosts) == SPConfig[1] & length(SP$links) == SPConfig[2] & length(SP$nes) == SPConfig[3] ) {
     satisfied <- TRUE
   } 
+  
 }
 
 SPhosts <- decomposeSP(SP, "hosts")
@@ -57,7 +63,12 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 rm(l, m, n)
 
 satisfied <- FALSE
+numberOTrials <- 0
 while (!satisfied) {
+
+  numberOTrials <- numberOTrials + 1
+  if (numberOTrials == 1000) { stop("ERROR: infinite loop!!!") }
+  
   P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3], minHosts, minLinks, minNEs)
   
   Phosts <- decomposeProv(P, "hosts", minHosts)
@@ -74,7 +85,7 @@ while (!satisfied) {
 ####### confs for hosts #######
 if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
   rm(list = ls())
-  stop("ERROR: Less providers than original amount!!!")
+  stop("ERROR: less providers than original amount!!!")
 }
 
 fd <- file(paste("./files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" ), "w")
@@ -128,3 +139,6 @@ bashCommand <- paste("bash files/count.sh files/h", "-", SPConfig[1], "-", SPCon
 testBash <- as.numeric(system(bashCommand, intern = TRUE))
 testProv <- tabulate(Phosts$providerID)
 if (any(testBash != testProv)) print("ERROR: tests are different!!!")
+
+solverCommand <- paste("bash solver/gera.sh files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
+testSolver <- as.numeric(system(solverCommand, intern = TRUE))
