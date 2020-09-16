@@ -9,17 +9,20 @@ createOneSP <- function(numberOfHosts = 0, numberOfLinks = 0, numberOfNEs = 0) {
 	if ( missing(numberOfNEs) ) { numberOfNEs <- sample(0:3, size=1) }
 
 	# number of hosts is always greater than 1
-	createHosts(numberOfHosts, spEnv)
+	minHosts <- data.frame("cpu" = 1, "mem" = 4, "str" = 128)
+	createHosts(numberOfHosts, minHosts, spEnv)
 
 	if (numberOfLinks > 0) {
-		createLinks(numberOfLinks, spEnv)
+	  minLinks <- data.frame("cap" = 1, "del" = 1, "jit" = 1)
+		createLinks(numberOfLinks, minLinks, spEnv)
 	}
 	else {
 		assign("link1", 0, envir=spEnv)
 	}
 
 	if (numberOfNEs > 0) {
-		createNEs(numberOfNEs, spEnv)
+	  minNEs <- data.frame("cap" = 1, "por" = 6, "que" = 1)
+		createNEs(numberOfNEs, minNEs, spEnv)
 	}
 	else {
 		assign("ne1", 0, envir=spEnv)

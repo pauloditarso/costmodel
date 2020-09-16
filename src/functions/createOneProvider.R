@@ -1,29 +1,29 @@
-createOneProvider <- function(numberOfHosts = 0, numberOfLinks = 0, numberOfNEs = 0) {
+createOneProvider <- function(numberOfHosts = 0, numberOfLinks = 0, numberOfNEs = 0, minHosts, minLinks, minNEs) {
 	# there is no treatment for provider profiles
 	# also, still needs a pricing definition
 
 	providerEnv <- new.env()
 
-	if ( missing(numberOfHosts) ) { numberOfHosts <- sample(0:10, size=1) }
-	if ( missing(numberOfLinks) ) { numberOfLinks <- sample(0:5, size=1) }
-	if ( missing(numberOfNEs) ) { numberOfNEs <- sample(0:5, size=1) }
+	# if ( missing(numberOfHosts) ) { numberOfHosts <- sample(0:10, size=1) }
+	# if ( missing(numberOfLinks) ) { numberOfLinks <- sample(0:5, size=1) }
+	# if ( missing(numberOfNEs) ) { numberOfNEs <- sample(0:5, size=1) }
 
 	if (numberOfHosts > 0) {
-		createHosts(numberOfHosts, providerEnv)
+		createHosts(numberOfHosts, minHosts, providerEnv)
 	}
 	else {
 		assign("host1", 0, envir=providerEnv)
 	}
 
 	if (numberOfLinks > 0) {
-		createLinks(numberOfLinks, providerEnv)
+		createLinks(numberOfLinks, minLinks, providerEnv)
 	}
 	else {
 		assign("link1", 0, envir=providerEnv)
 	}
 
 	if (numberOfNEs > 0) {
-		createNEs(numberOfNEs, providerEnv)
+		createNEs(numberOfNEs, minNEs, providerEnv)
 	}
 	else {
 		assign("ne1", 0, envir=providerEnv)

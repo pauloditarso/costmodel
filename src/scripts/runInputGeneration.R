@@ -2,6 +2,7 @@ rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
+numberOfProviders <- 10
 # minNumberOfProviders <- 5
 # maxNumberOfProviders <- 10
 numberOfTurns <- 30
@@ -17,7 +18,15 @@ referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
 
 #set.seed()
-SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
+
+satisfied <- FALSE
+while(!satisfied) {
+  SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
+  
+  if( length(SP$hosts) == SPConfig[1] & length(SP$links) == SPConfig[2] & length(SP$nes) == SPConfig[3] ) {
+    satisfied <- TRUE
+  } 
+}
 
 SPhosts <- decomposeSP(SP, "hosts")
 minHosts <- data.frame(min(SPhosts$cpu), min(SPhosts$mem), min(SPhosts$str))
@@ -47,17 +56,18 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 
 rm(l, m, n)
 
-numberOfProviders <- 10
-
-P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3])
-
-Phosts <- decomposeProv(P, "hosts", minHosts)
-Plinks <- decomposeProv(P, "links", minLinks)
-Pnes <- decomposeProv(P, "nes", minNEs)
-
-if ( nrow(Phosts) < nrow(SPhosts) | nrow(Plinks) < nrow(SPlinks) | nrow(Pnes) < nrow(SPnes) ) {
-  rm(list = ls())
-  stop("ERROR: Response not available!!!")
+satisfied <- FALSE
+while (!satisfied) {
+  P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3], minHosts, minLinks, minNEs)
+  
+  Phosts <- decomposeProv(P, "hosts", minHosts)
+  Plinks <- decomposeProv(P, "links", minLinks)
+  Pnes <- decomposeProv(P, "nes", minNEs)
+  
+  if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & nrow(Pnes) >= nrow(SPnes) ) {
+    satisfied <- TRUE
+  }
+  
 }
 
 
