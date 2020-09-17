@@ -1,6 +1,6 @@
 filename=$1
 label="${filename%.*}"
-CWD="/data/OneDrive/Trabalho/git-area/github/costmodel"
+CWD=$PWD
 
 python3 $CWD/solver/generate_lp.py $filename > $CWD/$label.glp
 glpsol --lp $CWD/$label.glp -o $CWD/$label.res

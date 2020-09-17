@@ -81,6 +81,7 @@ while (!satisfied) {
   
 }
 
+scenarioName <- paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, sep = "")
 
 ####### confs for hosts #######
 if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
@@ -130,15 +131,30 @@ for ( providerID in unique(Phosts$providerID) ) {
   writeLines( noquote(finalStr), con = fd, sep = "\n" )
 }
 # rm(aux)
+rm(providerID, resourceID, demandID, finalStr, auxCond, auxStr, auxProvResource)
 
 close(fd)
 
-print(paste("#time end", Sys.time(), sep = " "))
-
-bashCommand <- paste("bash files/count.sh files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
+bashCommand <- paste("bash files/count.sh files/", scenarioName, ".txt", sep = "")
 testBash <- as.numeric(system(bashCommand, intern = TRUE))
 testProv <- tabulate(Phosts$providerID)
 if (any(testBash != testProv)) print("ERROR: tests are different!!!")
 
-solverCommand <- paste("bash solver/gera.sh files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" )
-testSolver <- as.numeric(system(solverCommand, intern = TRUE))
+solverCommand <- paste("bash solver/gera.sh files/", scenarioName, ".txt", sep = "" )
+logSolver <- system(solverCommand, intern = TRUE)
+
+if (file.info(paste("files/", scenarioName, ".opt", sep = ""))$size != 0) {
+  responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), header = F)
+}
+
+
+costScenario <- 0
+for (i in 1:nrow(responseOpt)) { 
+  providerID <- responseOpt[i,]$V1
+  resourceID <- responseOpt[i,]$V2
+  costScenario <- costScenario + as.numeric(Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID,]$price)
+}
+
+print(costScenario)
+
+print(paste("#time end", Sys.time(), sep = " "))
