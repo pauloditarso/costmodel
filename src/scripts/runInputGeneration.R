@@ -1,11 +1,10 @@
 rm(list = ls())
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(4,4,2)
-numberOfProviders <- 10
-# minNumberOfProviders <- 5
-# maxNumberOfProviders <- 10
-numberOfTurns <- 30
+SPConfig<-c(2,2,1)
+#numberOfProviders <- 1
+maxNumberOfProviders <- 10
+numberOfTurns <- 10
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
@@ -20,11 +19,11 @@ referenceNE <- c(1, 6, 1, 2)
 #set.seed()
 
 satisfied <- FALSE
-numberOTrials <- 0
+numberOfTrials <- 0
 while(!satisfied) {
   
-  numberOTrials <- numberOTrials + 1
-  if (numberOTrials == 1000) { stop("ERROR: infinite loop!!!") }
+  numberOfTrials <- numberOfTrials + 1
+  if (numberOfTrials == 1000) { stop("ERROR: infinite loop!!!") }
   
   SP <- createOneSP(SPConfig[1], SPConfig[2], SPConfig[3])
   
@@ -62,99 +61,140 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 
 rm(l, m, n)
 
-satisfied <- FALSE
-numberOTrials <- 0
-while (!satisfied) {
+costResults <- data.frame(matrix(ncol=3, nrow=0))
 
-  numberOTrials <- numberOTrials + 1
-  if (numberOTrials == 1000) { stop("ERROR: infinite loop!!!") }
+for (numberOfProviders in 5:maxNumberOfProviders) {
   
-  P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3], minHosts, minLinks, minNEs)
+  print(c(numberOfProviders, maxNumberOfProviders))
+  turn <- 1
   
-  Phosts <- decomposeProv(P, "hosts", minHosts)
-  Plinks <- decomposeProv(P, "links", minLinks)
-  Pnes <- decomposeProv(P, "nes", minNEs)
-  
-  if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & nrow(Pnes) >= nrow(SPnes) ) {
-    satisfied <- TRUE
-  }
-  
-}
-
-scenarioName <- paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, sep = "")
-
-####### confs for hosts #######
-if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
-  rm(list = ls())
-  stop("ERROR: less providers than original amount!!!")
-}
-
-fd <- file(paste("./files/h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, ".txt", sep = "" ), "w")
-writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
-
-for ( providerID in unique(Phosts$providerID) ) {
-
-  finalStr <- "{"
-  
-  for ( resourceID in Phosts[Phosts$providerID == providerID, ]$resourceID ) {
+  while (turn <= numberOfTurns) {
     
-    auxProvResource <- Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID, c("cpu", "mem", "str", "price")]
-    auxCond <- FALSE
-    auxStr <- ""
-    
-    for ( demandID in 1:nrow(SPhosts) ) {
+    satisfied <- FALSE
+    numberOfTrials <- 0
+    while (!satisfied) {
       
-      if ( all( auxProvResource[c("cpu", "mem", "str")] >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
+      numberOfTrials <- numberOfTrials + 1
+      if (numberOfTrials == 1000) { stop("ERROR: infinite loop!!!") }
+      
+      P <- createProviders(numberOfProviders, SPConfig[1], SPConfig[2], SPConfig[3], minHosts, minLinks, minNEs)
+      
+      Phosts <- decomposeProv(P, "hosts", minHosts)
+      Plinks <- decomposeProv(P, "links", minLinks)
+      Pnes <- decomposeProv(P, "nes", minNEs)
+      
+      if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & nrow(Pnes) >= nrow(SPnes) ) {
+        satisfied <- TRUE
+      }
+      
+    }
+    
+    scenarioName <- paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], "-", numberOfProviders, sep = "")
+    
+    ####### confs for hosts #######
+    if ( length(unique(Phosts$providerID)) < numberOfProviders ) {
+      rm(list = ls())
+      stop("ERROR: less providers than original amount!!!")
+    }
+    
+    fd <- file(paste("./files/", scenarioName, ".txt", sep = "" ), "w")
+    writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
+    
+    for ( providerID in unique(Phosts$providerID) ) {
+      
+      finalStr <- "{"
+      
+      for ( resourceID in Phosts[Phosts$providerID == providerID, ]$resourceID ) {
         
-        if ( auxCond == FALSE ) {
-          auxStr <- paste(demandID-1)
+        auxProvResource <- Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID, c("cpu", "mem", "str", "price")]
+        auxCond <- FALSE
+        auxStr <- ""
+        
+        for ( demandID in 1:nrow(SPhosts) ) {
+          
+          if ( all( auxProvResource[c("cpu", "mem", "str")] >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
+            
+            if ( auxCond == FALSE ) {
+              auxStr <- paste(demandID-1)
+            }
+            else {
+              auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
+            }
+            auxCond <- TRUE
+          }
+          
+        }
+        
+        if ( auxCond == TRUE ) { finalStr <- paste(finalStr, auxStr, ":", auxProvResource["price"], sep = " ") }
+        
+        if ( resourceID != tail(Phosts[Phosts$providerID == providerID, ]$resourceID, n=1)) {
+          finalStr <- paste(finalStr, ";", sep = " ")
         }
         else {
-          auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
+          finalStr <- paste(finalStr, "}", sep = " ") 
         }
-        auxCond <- TRUE
+        
       }
-       
+      
+      writeLines( noquote(finalStr), con = fd, sep = "\n" )
     }
+    # rm(aux)
+    rm(providerID, resourceID, demandID, finalStr, auxCond, auxStr, auxProvResource)
     
-    if ( auxCond == TRUE ) { finalStr <- paste(finalStr, auxStr, ":", auxProvResource["price"], sep = " ") }
-  
-    if ( resourceID != tail(Phosts[Phosts$providerID == providerID, ]$resourceID, n=1)) {
-      finalStr <- paste(finalStr, ";", sep = " ")
+    close(fd)
+    
+    bashCommand <- paste("bash files/count.sh files/", scenarioName, ".txt", sep = "")
+    testBash <- as.numeric(system(bashCommand, intern = TRUE))
+    testProv <- tabulate(Phosts$providerID)
+    if (any(testBash != testProv)) print("ERROR: tests are different!!!")
+    rm(bashCommand, testBash, testProv)
+    
+    solverCommand <- paste("bash solver/gera.sh files/", scenarioName, ".txt", sep = "" )
+    logSolver <- system(solverCommand, intern = TRUE)
+    if (file.info(paste("files/", scenarioName, ".opt", sep = ""))$size != 0) {
+      
+      responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), header = F)
+      
+      costScenario <- 0
+      providerID <- 0
+      resourceID <- 0
+      for (i in 1:nrow(responseOpt)) { 
+        providerID <- responseOpt[i,]$V1
+        resourceID <- responseOpt[i,]$V2
+        costScenario <- costScenario + 
+          as.numeric(Phosts[Phosts$providerID == providerID & 
+                              Phosts$resourceID == resourceID,]$price)
+      }
+      
+      costResults <- rbind(costResults, c(numberOfProviders, turn, costScenario))
+      turn <- turn + 1
+      rm(costScenario, providerID, resourceID, responseOpt)
+      
     }
-    else {
-      finalStr <- paste(finalStr, "}", sep = " ") 
-    }
+    rm(solverCommand, logSolver)
+    rm(fd, numberOfTrials, P, Phosts, Plinks, Pnes, satisfied)
     
   }
-
-  writeLines( noquote(finalStr), con = fd, sep = "\n" )
-}
-# rm(aux)
-rm(providerID, resourceID, demandID, finalStr, auxCond, auxStr, auxProvResource)
-
-close(fd)
-
-bashCommand <- paste("bash files/count.sh files/", scenarioName, ".txt", sep = "")
-testBash <- as.numeric(system(bashCommand, intern = TRUE))
-testProv <- tabulate(Phosts$providerID)
-if (any(testBash != testProv)) print("ERROR: tests are different!!!")
-
-solverCommand <- paste("bash solver/gera.sh files/", scenarioName, ".txt", sep = "" )
-logSolver <- system(solverCommand, intern = TRUE)
-
-if (file.info(paste("files/", scenarioName, ".opt", sep = ""))$size != 0) {
-  responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), header = F)
+  
 }
 
+rm(list=setdiff(ls(), "costResults"))
+colnames(costResults) <- c("provs", "turn", "cost")
+costSummary <- data.frame(matrix(ncol = 4, nrow = 0))
+for ( i in unique(costResults$provs) ) { 
 
-costScenario <- 0
-for (i in 1:nrow(responseOpt)) { 
-  providerID <- responseOpt[i,]$V1
-  resourceID <- responseOpt[i,]$V2
-  costScenario <- costScenario + as.numeric(Phosts[Phosts$providerID == providerID & Phosts$resourceID == resourceID,]$price)
+  costSummary <- rbind( costSummary, c(i, Rmisc::CI(costResults[costResults$provs == i,]$cost)) ) 
+
 }
 
-print(costScenario)
+colnames(costSummary) <-c("provs", "upper", "mean", "lower")
+rm(i)
+
+p <- ggplot(costSummary, aes(x=provs, y=mean)) +
+   geom_point() +
+   geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
+
+save.image()
+savehistory()
 
 print(paste("#time end", Sys.time(), sep = " "))
