@@ -3,6 +3,7 @@ print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
 #numberOfProviders <- 1
+minNumberOfProviders <- 5
 maxNumberOfProviders <- 10
 numberOfTurns <- 10
 priceHostPerDay <- 0
@@ -63,7 +64,7 @@ rm(l, m, n)
 
 costResults <- data.frame(matrix(ncol=3, nrow=0))
 
-for (numberOfProviders in 5:maxNumberOfProviders) {
+for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
   print(c(numberOfProviders, maxNumberOfProviders))
   turn <- 1
@@ -193,6 +194,8 @@ rm(i)
 p <- ggplot(costSummary, aes(x=provs, y=mean)) +
    geom_point() +
    geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
+
+ggsave("out.pdf", plot = p, device = "pdf")
 
 save.image()
 savehistory()
