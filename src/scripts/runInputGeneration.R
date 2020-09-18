@@ -1,4 +1,5 @@
 rm(list = ls())
+library(ggplot2)
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
 SPConfig<-c(2,2,1)
@@ -191,13 +192,12 @@ for ( i in unique(costResults$provs) ) {
 colnames(costSummary) <-c("provs", "upper", "mean", "lower")
 rm(i)
 
-p <- ggplot(costSummary, aes(x=provs, y=mean)) +
+p <- ggplot2::ggplot(costSummary, aes(x=provs, y=mean)) +
    geom_point() +
    geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
 
 ggsave("out.pdf", plot = p, device = "pdf")
 
 save.image()
-savehistory()
 
 print(paste("#time end", Sys.time(), sep = " "))
