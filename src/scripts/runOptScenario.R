@@ -2,11 +2,11 @@ rm(list = ls())
 library(ggplot2)
 print(paste("#time start", Sys.time(), sep = " "))
 source('./src/scripts/sourceAll.R')
-SPConfig<-c(4,4,2)
+SPConfig<-c(2,2,1)
 #numberOfProviders <- 1
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 5
-numberOfTurns <- 1
+maxNumberOfProviders <- 10
+numberOfTurns <- 100
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
@@ -68,8 +68,7 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 rm(l, m, n)
 # ending block of setting the price constraints per resources #
 
-costResults <- data.frame(matrix(ncol=4, nrow=0))
-
+costResults <- data.frame(matrix(ncol=3, nrow=0))
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
@@ -107,12 +106,6 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
     
     fd <- file(paste("./files/", scenarioName, ".txt", sep = "" ), "w")
     writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), sep = " ")), con = fd, sep = "\n" )
-  
-    firstOfferHosts <- data.frame(matrix(nrow = 0, ncol = 3))
-    foundFirstOfferHosts <- FALSE
-    lastDemand <- 0
-    lastResource <- 0
-    lastProvider <- 0
     
     for ( providerID in unique(Phosts$providerID) ) {
       
@@ -127,21 +120,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         for ( demandID in 1:nrow(SPhosts) ) {
           
           if ( all( auxProvResource[c("cpu", "mem", "str")] >= SPhosts[demandID, c("cpu", "mem", "str")] ) ) {
-
-            if ( nrow(firstOfferHosts) == nrow(SPhosts) ) {
-              foundFirstOfferHosts <- TRUE
-            }            
-            if ( (!foundFirstOfferHosts) & (lastDemand < demandID) ) {
-              
-              if (lastProvider != providerID | lastResource != resourceID) {
-                firstOfferHosts <- rbind( firstOfferHosts, c(providerID, resourceID, demandID) )
-                lastDemand <- demandID
-                lastResource <- resourceID
-                lastProvider <- providerID
-              }
-              
-            }
-
+            
             if ( auxCond == FALSE ) {
               auxStr <- paste(demandID-1)
             }
@@ -149,12 +128,9 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
               auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
             }
             auxCond <- TRUE
-          
           }
           
         }
-        
-        colnames(firstOfferHosts) <- c("providerID", "resourceID", "demandID")
         
         if ( auxCond == TRUE ) { finalStr <- paste(finalStr, auxStr, ":", auxProvResource["price"], sep = " ") }
         
@@ -169,13 +145,15 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       
       writeLines( noquote(finalStr), con = fd, sep = "\n" )
     }
+    # rm(aux)
+    rm(providerID, resourceID, demandID, finalStr, auxCond, auxStr, auxProvResource)
+    
     close(fd)
-    rm(fd, providerID, resourceID, demandID, finalStr, auxCond, auxStr, auxProvResource)
     
     bashCommand <- paste("bash files/count.sh files/", scenarioName, ".txt", sep = "")
     testBash <- as.numeric(system(bashCommand, intern = TRUE))
     testProv <- tabulate(Phosts$providerID)
-    if (any(testBash != testProv)) { print("ERROR: tests are different!!!") }
+    if (any(testBash != testProv)) print("ERROR: tests are different!!!")
     rm(bashCommand, testBash, testProv)
     
     solverCommand <- paste("bash solver/gera.sh files/", scenarioName, ".txt", sep = "" )
@@ -195,46 +173,35 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
                               Phosts$resourceID == resourceID,]$price)
       }
       
-      firstCost <- 0
-      auxProvID <- 0; auxResID <- 0
-      for ( i in 1:nrow(firstOfferHosts) ) {
-        auxProvID <- firstOfferHosts[i,]$providerID
-        auxResID <- firstOfferHosts[i,]$resourceID
-        firstCost <- firstCost + (Phosts[Phosts$providerID == auxProvID & Phosts$resourceID == auxResID,]$price) 
-      }
-      
-      if ( costScenario > firstCost ) { print("ERROR: minimal cost greater than first!!!") }
-      
-      costResults <- rbind(costResults, c(numberOfProviders, turn, costScenario, firstCost))
+      costResults <- rbind(costResults, c(numberOfProviders, turn, costScenario))
       turn <- turn + 1
-      rm(costScenario, providerID, resourceID, responseOpt, firstCost, auxResID, auxProvID)
+      rm(costScenario, providerID, resourceID, responseOpt)
       
     }
     rm(solverCommand, logSolver)
-    # rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts, 
-       # firstOfferHosts, lastDemand, lastResource, lastProvider)
-
+    rm(fd, numberOfTrials, P, Phosts, Plinks, Pnes, satisfied)
+    
   }
   
 }
 
-# rm(list=setdiff(ls(), "costResults"))
-colnames(costResults) <- c("provs", "turn", "min", "first")
+rm(list=setdiff(ls(), "costResults"))
+colnames(costResults) <- c("provs", "turn", "cost")
 costSummary <- data.frame(matrix(ncol = 4, nrow = 0))
 for ( i in unique(costResults$provs) ) { 
 
-  costSummary <- rbind( costSummary, c(i, Rmisc::CI(costResults[costResults$provs == i, c("provs", "turn", "min")]$min)) ) 
+  costSummary <- rbind( costSummary, c(i, Rmisc::CI(costResults[costResults$provs == i,]$cost)) ) 
 
 }
 
 colnames(costSummary) <-c("provs", "upper", "mean", "lower")
 rm(i)
 
-# p <- ggplot2::ggplot(costSummary, aes(x=provs, y=mean)) +
-#    geom_point() +
-#    geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
-# 
-# ggsave("out.pdf", plot = p, device = "pdf")
+p <- ggplot2::ggplot(costSummary, aes(x=provs, y=mean)) +
+   geom_point() +
+   geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
+
+ggsave("out.pdf", plot = p, device = "pdf")
 
 save.image()
 
