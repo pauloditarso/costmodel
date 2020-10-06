@@ -1,12 +1,14 @@
-rm(list = ls())
-library(ggplot2)
 print(paste("#time start", Sys.time(), sep = " "))
+
+rm(list = ls())
+if ( !("ggplot2" %in% (.packages())) )  { library(ggplot2) }
 source('./src/scripts/sourceAll.R')
+
 SPConfig<-c(2,2,1)
 #numberOfProviders <- 1
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 20
-numberOfTurns <- 100
+maxNumberOfProviders <- 10
+numberOfTurns <- 10
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
@@ -222,25 +224,23 @@ colnames(costResults) <- c("provs", "turn", "min", "first")
 costSummary <- data.frame(matrix(ncol = 5, nrow = 0), stringsAsFactors = FALSE)
 for ( i in unique(costResults$provs) ) { 
 
+  # '1' means minimal cost
   costSummary <- rbind( costSummary, c(i, 1, Rmisc::CI(costResults[costResults$provs == i,]$min)) )
+  # '2' means first cost
   costSummary <- rbind( costSummary, c(i, 2, Rmisc::CI(costResults[costResults$provs == i,]$first)) )
   
 }
 colnames(costSummary) <- c("provs", "cost", "upper", "mean", "lower")
 rm(i)
 
-# p <- ggplot2::ggplot(costSummary, aes(x=provs, y=mean)) +
-#    geom_point() +
-#    geom_errorbar(aes(ymax = upper, ymin = lower), width=.2)
-# 
-# ggsave("out.pdf", plot = p, device = "pdf")
-
-costPlot <- ggplot2::ggplot(costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper, color = factor(cost))) +
+costPlot <- ggplot(costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper, group=cost, color = factor(cost))) +
+  theme_bw() +
   geom_point() +
-#  geom_smooth(method = "glm", se = TRUE)
-#geom_smooth(method = glm, aes(ymin=lower, ymax=upper, fill=cost), se = TRUE)
-geom_errorbar(width=.2)
-ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
+  geom_smooth(stat="identity") +
+  theme(legend.position = "top") +
+  xlab("Number of Providers") + ylab("Average slice cost") +
+  scale_color_discrete("Legend:", breaks = unique(factor(costSummary$cost)), labels = c("min", "first"))
+#ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
 
 rm(list=setdiff(ls(), ls(pattern = "cost")))
 save.image()
