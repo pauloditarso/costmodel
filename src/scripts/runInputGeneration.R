@@ -107,7 +107,19 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       
       if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & 
            nrow(Pnes) >= nrow(SPnes) ) {
-        satisfied <- TRUE
+        
+        totalOptions <- vector()
+        for ( i in nrow(SPhosts) ) {
+          
+          numberOfOptions <- nrow(Phosts[Phosts$cpu >= SPhosts[i,]$cpu & 
+              Phosts$mem >= SPhosts[i,]$mem & Phosts$str >= SPhosts[i,]$str,])
+          
+          totalOptions <- c(totalOptions, numberOfOptions)
+          
+        }
+        
+        if ( all(totalOptions != 0) ) satisfied <- TRUE
+        
       }
       
     }
@@ -140,16 +152,32 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         while (!satisfied) {
           
           numberOfTrials <- numberOfTrials + 1
-          if (numberOfTrials == 1000) { break }
+          if ( numberOfTrials > nrow(Phosts) ) {
+            randomOfferHosts <- data.frame(matrix(nrow = 0, ncol = 3))
+            PhostsAux <- Phosts
+            break 
+          }
           
-          randomSample <- sample(nrow(PhostsAux),1)
-          if ( all(SPhosts[demandID,c("cpu", "mem", "str")] <= 
-                   PhostsAux[randomSample, c("cpu", "mem", "str")]) ) {
+          setOfChoices <- as.numeric(rownames(PhostsAux[PhostsAux$cpu >= 
+                          SPhosts[demandID,]$cpu & PhostsAux$mem >= 
+                          SPhosts[demandID,]$mem & PhostsAux$str >= 
+                          SPhosts[demandID,]$str,]))
+          
+          if ( length(setOfChoices) == 1 ) {
+            randomRow <- which(rownames(PhostsAux) == setOfChoices)
+          } else {
+            randomAux <- sample(setOfChoices, 1)
+            randomRow <- which(rownames(PhostsAux) == randomAux)
+          }
+          
+          randomSample <- PhostsAux[randomRow, c("cpu", "mem", "str")]
+          
+          if ( all(SPhosts[demandID, c("cpu", "mem", "str")] <= randomSample) ) {
             satisfied <- TRUE
             randomOfferHosts <- rbind( randomOfferHosts, c(demandID, 
-                                        PhostsAux[randomSample,]$providerID, 
-                                        PhostsAux[randomSample,]$resourceID) )
-            PhostsAux <- PhostsAux[-randomSample,]
+                                        PhostsAux[randomRow,]$providerID, 
+                                        PhostsAux[randomRow,]$resourceID) )
+            PhostsAux <- PhostsAux[-randomRow,]
           }
         
         }
