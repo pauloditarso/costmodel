@@ -42,12 +42,20 @@ while(!satisfied) {
 
 # starting block of decomposing input demand #
 SPhosts <- decomposeSP(SP, "hosts")
+SPhosts <- SPhosts[order(SPhosts$cost),]
+rownames(SPhosts) <- 1:(nrow(SPhosts))
 minHosts <- data.frame(min(SPhosts$cpu), min(SPhosts$mem), min(SPhosts$str))
 colnames(minHosts) <- c("cpu", "mem", "str")
+
 SPlinks <- decomposeSP(SP, "links")
+SPlinks <- SPlinks[order(SPlinks$cost),]
+rownames(SPlinks) <- 1:(nrow(SPlinks))
 minLinks <- data.frame(min(SPlinks$cap), min(SPlinks$del), min(SPlinks$jit))
 colnames(minLinks) <- c("cap", "del", "jit")
+
 SPnes <- decomposeSP(SP, "nes")
+SPnes <- SPnes[order(SPnes$cost),]
+rownames(SPnes) <- 1:(nrow(SPnes))
 minNEs <- data.frame(min(SPnes$cap), min(SPnes$por), min(SPnes$que))
 colnames(minNEs) <- c("cap", "por", "que")
 # ending block of decomposing input demand #
@@ -84,9 +92,10 @@ costResults <- data.frame(matrix(ncol=5, nrow=0))
 
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
-  
-  print(c(numberOfProviders, maxNumberOfProviders))
+
   turn <- 1
+  print(paste("#providers", numberOfProviders, "of", maxNumberOfProviders, 
+              "time", Sys.time(), sep = " "))
   
   while (turn <= numberOfTurns) {
     
@@ -172,12 +181,15 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
           
           randomSample <- PhostsAux[randomRow, c("cpu", "mem", "str")]
           
-          if ( all(SPhosts[demandID, c("cpu", "mem", "str")] <= randomSample) ) {
+          if ( all(SPhosts[demandID, c("cpu", "mem", "str")] <= 
+                   randomSample) ) {
+            
             satisfied <- TRUE
             randomOfferHosts <- rbind( randomOfferHosts, c(demandID, 
                                         PhostsAux[randomRow,]$providerID, 
                                         PhostsAux[randomRow,]$resourceID) )
             PhostsAux <- PhostsAux[-randomRow,]
+          
           }
         
         }
@@ -370,14 +382,15 @@ for ( i in unique(costResults$provs) ) {
 colnames(costSummary) <- c("provs", "type", "upper", "mean", "lower")
 rm(i)
 
-# costPlot <- ggplot(costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper, 
-#                                     group=type, color = factor(type))) +
+# costPlot <- ggplot( costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper,
+#                                     group=type, color = factor(-type)) ) +
 #   theme_bw() +
 #   geom_point() +
 #   geom_smooth(stat="identity") +
-#   theme(legend.position = "top") +
+#   theme(legend.position = "right", panel.grid.minor.x = element_blank()) +
 #   xlab("Number of Providers") + ylab("Average slice cost") +
-#   scale_color_discrete("Legend:", breaks = unique(factor(costSummary$type)), 
+#   scale_x_continuous(breaks=seq(5, 20, 1)) +
+#   scale_color_discrete("Legend:", breaks = unique(factor(-costSummary$type)),
 #                        labels = c("opt", "first", "random"))
 #ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", 
 #SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
