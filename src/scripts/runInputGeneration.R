@@ -5,10 +5,11 @@ if ( !("ggplot2" %in% (.packages())) )  { library(ggplot2) }
 source('./src/scripts/sourceAll.R')
 
 SPConfig<-c(2,2,1)
+demand <- c("a) 2,2,1")
 #numberOfProviders <- 1
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 20
-numberOfTurns <- 100
+maxNumberOfProviders <- 8
+numberOfTurns <- 10
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
@@ -88,7 +89,7 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 rm(l, m, n)
 # ending block of setting the price constraints per resources #
 
-costResults <- data.frame(matrix(ncol=5, nrow=0))
+costResults <- data.frame(matrix(ncol=6, nrow=0))
 
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
@@ -345,7 +346,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         print("ERROR: optimized cost greater than first choice!!!") 
       }
       
-      costResults <- rbind(costResults, c(numberOfProviders, turn, 
+      costResults <- rbind(costResults, c(demand, numberOfProviders, turn, 
                                           optCost, firstCost, randomCost))
       turn <- turn + 1
       rm(optCost, providerID, resourceID, responseOpt, firstCost, 
@@ -364,22 +365,23 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
 }
 
-colnames(costResults) <- c("provs", "turn", "opt", "first", "random")
-costSummary <- data.frame(matrix(ncol = 5, nrow = 0), stringsAsFactors = FALSE)
+colnames(costResults) <- c("demand", "provs", "turn", "opt", "first", "random")
+costSummary <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
+
 for ( i in unique(costResults$provs) ) { 
 
   # '1' means optimized cost
-  costSummary <- rbind( costSummary, 
-                  c(i, 1, Rmisc::CI(costResults[costResults$provs == i,]$opt)) )
+  costSummary <- rbind( costSummary, c(demand, i, 1, 
+           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$opt))) )
   # '2' means first cost
-  costSummary <- rbind( costSummary, 
-                c(i, 2, Rmisc::CI(costResults[costResults$provs == i,]$first)) )
+  costSummary <- rbind( costSummary, c(demand, i, 2, 
+           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$first))) )
   # '3' means random cost
-  costSummary <- rbind( costSummary, 
-               c(i, 3, Rmisc::CI(costResults[costResults$provs == i,]$random)) )
+  costSummary <- rbind( costSummary, c(demand, i, 3, 
+           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$random))) )
   
 }
-colnames(costSummary) <- c("provs", "type", "upper", "mean", "lower")
+colnames(costSummary) <- c("demand", "provs", "type", "upper", "mean", "lower")
 rm(i)
 
 # costPlot <- ggplot( costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper,
@@ -391,7 +393,8 @@ rm(i)
 #   xlab("Number of Providers") + ylab("Average slice cost") +
 #   scale_x_continuous(breaks=seq(5, 20, 1)) +
 #   scale_color_discrete("Legend:", breaks = unique(factor(-costSummary$type)),
-#                        labels = c("opt", "first", "random"))
+#                        labels = c("opt", "first", "random")) +
+#   facet_wrap(~demand, scales = "free_y")
 #ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", 
 #SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
 
