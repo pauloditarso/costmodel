@@ -4,12 +4,21 @@ rm(list = ls())
 if ( !("ggplot2" %in% (.packages())) )  { library(ggplot2) }
 source('./src/scripts/sourceAll.R')
 
-SPConfig<-c(2,2,1)
-demand <- c("a) 2,2,1")
+input <- read.delim("input.txt", header = F, sep = " ")
+SPConfig <- c(input$V1, input$V1, (input$V1/2))
+demand = switch (as.character(SPConfig[1]),
+  "2"  = c("a) 2,2,1"),
+  "4"  = c("b) 4,4,2"),
+  "8"  = c("c) 8,8,4"),
+  "16" = c("d) 16,16,8"),
+  "32" = c("e) 32,32,16"),
+  "64" = c("f) 64,64,32")
+)
+
 #numberOfProviders <- 1
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 8
-numberOfTurns <- 10
+maxNumberOfProviders <- 20
+numberOfTurns <- input$V2
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
 priceNEPerDay <- 0
@@ -90,7 +99,7 @@ rm(l, m, n)
 # ending block of setting the price constraints per resources #
 
 costResults <- data.frame(matrix(ncol=6, nrow=0))
-
+costReps <- data.frame(matrix(ncol=6, nrow=0))
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 
@@ -322,6 +331,9 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), 
                               header = F)
       
+      costReps <- rbind( costReps, c(demand, SPConfig[1], numberOfProviders, 
+                                turn, length(unique(responseOpt$V1)), 1) )
+      
       optCost <- 0
       providerID <- 0
       resourceID <- 0
@@ -334,7 +346,8 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       }
       
       firstCost <- 0
-      auxProvID <- 0; auxResID <- 0
+      auxProvID <- 0
+      auxResID <- 0
       for ( i in 1:nrow(firstOfferHosts) ) {
         auxProvID <- firstOfferHosts[i,]$providerID
         auxResID <- firstOfferHosts[i,]$resourceID
@@ -365,6 +378,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
 }
 
+colnames(costReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
 colnames(costResults) <- c("demand", "provs", "turn", "opt", "first", "random")
 costSummary <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
 
