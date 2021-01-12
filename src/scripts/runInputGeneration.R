@@ -1,3 +1,7 @@
+# A SER IMPLEMENTADO:
+# 01 - AS POLITICAS DE DISPONIBILIDADE E FIDELIDADE PODEM SER IMPLEMENTADAS 
+#      NO ARQUIVO .TXT ANTES DA OTIMIZACAO
+
 print(paste("#time start", Sys.time(), sep = " "))
 
 rm(list = ls())
@@ -17,7 +21,7 @@ demand = switch (as.character(SPConfig[1]),
 
 #numberOfProviders <- 1
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 20
+maxNumberOfProviders <- 10
 numberOfTurns <- input$V2
 priceHostPerDay <- 0
 priceLinkPerDay <- 0
@@ -25,7 +29,7 @@ priceNEPerDay <- 0
 increasePriceFactor <- 1.5
 pricingType <- "fixed"
 quota <- -1
-
+discountRate <- 0.1
 referenceHost <- c(1, 4, 128, 0.1)
 referenceLink <- c(1, 1, 1, 2)
 referenceNE <- c(1, 6, 1, 2)
@@ -98,8 +102,8 @@ priceNEPerDay <- priceNEPerDay * increasePriceFactor
 rm(l, m, n)
 # ending block of setting the price constraints per resources #
 
-costResults <- data.frame(matrix(ncol=6, nrow=0))
-costReps <- data.frame(matrix(ncol=6, nrow=0))
+finalCosts <- data.frame(matrix(ncol=6, nrow=0))
+finalReps <- data.frame(matrix(ncol=6, nrow=0))
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 
@@ -238,16 +242,6 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
     lastResourceHosts <- 0
     lastProviderHosts <- 0
     
-    # DUAS COISAS A SEREM IMPLEMENTADAS:
-    # 01 - AS POLITICAS DE DISPONIBILIDADE E FIDELIDADE PODEM SER IMPLEMENTADAS 
-    #      NO ARQUIVO .TXT ANTES DA OTIMIZACAO
-    # 02 - UMA HEURISTICA ALEATORIA PODE SER IMPLEMENTADA A PARTIR DE TODAS OS 
-    #      RECURSOS VALIDOS
-    #      (SELECIONA ALEATORIAMENTE PARA CADA DEMANDA E REMOVE AS DEMAIS OFERTA
-    #      PARA TAL DEMANA)
-    #      (ALEM DE REMOVER AS DEMAIS ENTRADAS COM O MESMO CONJUNTO 
-    #      <PROVEDOR,RECURSO>)
-    
     for ( providerID in unique(Phosts$providerID) ) {
       
       finalStr <- "{"
@@ -325,13 +319,14 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
     solverCommand <- paste("bash solver/gera.sh files/", 
                            scenarioName, ".txt", sep = "" )
     logSolver <- system(solverCommand, intern = TRUE)
+    
     if ( file.info(paste("files/", scenarioName, ".opt", sep = ""))$size != 0 & 
          nrow(firstOfferHosts) == nrow(SPhosts) ) {
       
       responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), 
                               header = F)
       
-      costReps <- rbind( costReps, c(demand, SPConfig[1], numberOfProviders, 
+      finalReps <- rbind( finalReps, c(demand, SPConfig[1], numberOfProviders, 
                                 turn, length(unique(responseOpt$V1)), 1) )
       
       optCost <- 0
@@ -359,7 +354,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         print("ERROR: optimized cost greater than first choice!!!") 
       }
       
-      costResults <- rbind(costResults, c(demand, numberOfProviders, turn, 
+      finalCosts <- rbind(finalCosts, c(demand, numberOfProviders, turn, 
                                           optCost, firstCost, randomCost))
       turn <- turn + 1
       rm(optCost, providerID, resourceID, responseOpt, firstCost, 
@@ -367,8 +362,8 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       
     }
     rm(solverCommand, logSolver)
-    rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts,
-       firstOfferHosts, lastDemandHosts, lastResourceHosts, lastProviderHosts)
+    # rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts,
+       # firstOfferHosts, lastDemandHosts, lastResourceHosts, lastProviderHosts)
     
     #starting block for first and optimized strategies #
     
@@ -378,27 +373,40 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
 }
 
-colnames(costReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
-colnames(costResults) <- c("demand", "provs", "turn", "opt", "first", "random")
-costSummary <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
+colnames(finalReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
+colnames(finalCosts) <- c("demand", "provs", "turn", "opt", "first", "random")
 
-for ( i in unique(costResults$provs) ) { 
+finalRepsCI <- data.frame(matrix(ncol = 5, nrow = 0), stringsAsFactors = FALSE)
+finalCostsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
+
+for ( i in unique(finalCosts$provs) ) { 
 
   # '1' means optimized cost
-  costSummary <- rbind( costSummary, c(demand, i, 1, 
-           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$opt))) )
+  finalCostsCI <- rbind( finalCostsCI, c(demand, i, 1, 
+           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$opt))) )
   # '2' means first cost
-  costSummary <- rbind( costSummary, c(demand, i, 2, 
-           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$first))) )
+  finalCostsCI <- rbind( finalCostsCI, c(demand, i, 2, 
+           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$first))) )
   # '3' means random cost
-  costSummary <- rbind( costSummary, c(demand, i, 3, 
-           Rmisc::CI(as.numeric(costResults[costResults$provs == i,]$random))) )
+  finalCostsCI <- rbind( finalCostsCI, c(demand, i, 3, 
+           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$random))) )
   
 }
-colnames(costSummary) <- c("demand", "provs", "type", "upper", "mean", "lower")
+colnames(finalCostsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
 rm(i)
 
-# costPlot <- ggplot( costSummary, aes(x=provs, y=mean, ymin=lower, ymax=upper,
+for ( i in unique(finalReps$provs) ) { 
+  
+  used <- as.numeric(finalReps[finalReps$provs == i,]$used)
+  hosts <- as.numeric(finalReps[finalReps$provs == i,]$hosts)
+  percentage <- used/hosts
+  finalRepsCI <- rbind( finalRepsCI, c(demand, i, Rmisc::CI(percentage)) )
+  
+}
+colnames(finalRepsCI) <- c("demand", "provs", "upper", "mean", "lower")
+rm(i)
+
+# costPlot <- ggplot( finalCostsCI, aes(x=provs, y=mean, ymin=lower, ymax=upper,
 #                                     group=type, color = factor(-type)) ) +
 #   theme_bw() +
 #   geom_point() +
@@ -406,13 +414,13 @@ rm(i)
 #   theme(legend.position = "right", panel.grid.minor.x = element_blank()) +
 #   xlab("Number of Providers") + ylab("Average slice cost") +
 #   scale_x_continuous(breaks=seq(5, 20, 1)) +
-#   scale_color_discrete("Legend:", breaks = unique(factor(-costSummary$type)),
+#   scale_color_discrete("Legend:", breaks = unique(factor(-finalCostsCI$type)),
 #                        labels = c("opt", "first", "random")) +
 #   facet_wrap(~demand, scales = "free_y")
 #ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", 
 #SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
 
-rm(list=setdiff(ls(), ls(pattern = "cost")))
-save.image()
+# rm(list=setdiff(ls(), ls(pattern = "final")))
+# save.image()
 
 print(paste("#time end", Sys.time(), sep = " "))
