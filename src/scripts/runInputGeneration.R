@@ -19,7 +19,6 @@ demand = switch (as.character(SPConfig[1]),
   "64" = c("f) 64,64,32")
 )
 
-#numberOfProviders <- 1
 minNumberOfProviders <- 5
 maxNumberOfProviders <- 10
 numberOfTurns <- input$V2
@@ -62,46 +61,52 @@ SPhosts <- SPhosts[order(SPhosts$cost),]
 rownames(SPhosts) <- 1:(nrow(SPhosts))
 minHosts <- data.frame(min(SPhosts$cpu), min(SPhosts$mem), min(SPhosts$str))
 colnames(minHosts) <- hostsLabels
+SPhosts$cost <- round(SPhosts$cost, 2)
 
 SPlinks <- decomposeSP(SP, "links")
 SPlinks <- SPlinks[order(SPlinks$cost),]
 rownames(SPlinks) <- 1:(nrow(SPlinks))
 minLinks <- data.frame(min(SPlinks$cap), min(SPlinks$del), min(SPlinks$jit))
 colnames(minLinks) <- linksLabels
+SPlinks$cost <- round(SPlinks$cost, 2)
 
 SPnes <- decomposeSP(SP, "nes")
 SPnes <- SPnes[order(SPnes$cost),]
 rownames(SPnes) <- 1:(nrow(SPnes))
 minNEs <- data.frame(min(SPnes$cap), min(SPnes$por), min(SPnes$que))
 colnames(minNEs) <- nesLabels
+SPnes$cost <- round(SPnes$cost, 2)
 # ending block of decomposing input demand #
 
 # starting block of setting the price constraints per resources #
 for ( m in 1:nrow(SPhosts) ) {
-  priceHostPerDay <- priceHostPerDay + (24 * pricing(as.numeric(SPhosts[m,][1]), 
-                                                     as.numeric(SPhosts[m,][2]), 
-                                                     as.numeric(SPhosts[m,][3]), 
-                                                     "hosts"))
+  auxPricing <- (24 * pricing(as.numeric(SPhosts[m,][1]), 
+                              as.numeric(SPhosts[m,][2]), 
+                              as.numeric(SPhosts[m,][3]), "hosts"))
+  priceHostPerDay <- round( (priceHostPerDay + auxPricing), digits = 2 )
 }
-priceHostPerDay <- priceHostPerDay * increasePriceFactor
+priceHostPerDay <- round( (priceHostPerDay * increasePriceFactor), digits = 2 )
+rm(m, auxPricing)
 
 for ( l in 1:nrow(SPlinks) ) {
-  priceLinkPerDay <- priceLinkPerDay + (24 * pricing(as.numeric(SPlinks[l,][1]), 
-                                                     as.numeric(SPlinks[l,][2]), 
-                                                     as.numeric(SPlinks[l,][3]), 
-                                                     "links"))
+  auxPricing <- (24 * pricing(as.numeric(SPlinks[l,][1]), 
+                              as.numeric(SPlinks[l,][2]), 
+                              as.numeric(SPlinks[l,][3]), 
+                              "links"))
+  priceLinkPerDay <- round( (priceLinkPerDay + auxPricing), digits = 2 )
 }
-priceLinkPerDay <- priceLinkPerDay * increasePriceFactor
+priceLinkPerDay <- round( (priceLinkPerDay * increasePriceFactor), digits = 2 )
+rm(l, auxPricing)
 
 for ( n in 1:nrow(SPnes) ) {
-  priceNEPerDay <- priceNEPerDay + (24 * pricing(as.numeric(SPnes[n,][1]), 
-                                                 as.numeric(SPnes[n,][2]), 
-                                                 as.numeric(SPnes[n,][3]), 
-                                                 "nes"))
+  auxPricing <- (24 * pricing(as.numeric(SPnes[n,][1]), 
+                              as.numeric(SPnes[n,][2]), 
+                              as.numeric(SPnes[n,][3]), 
+                              "nes"))
+  priceNEPerDay <- round( (priceNEPerDay + auxPricing), digits = 2 )
 }
-priceNEPerDay <- priceNEPerDay * increasePriceFactor
-
-rm(l, m, n)
+priceNEPerDay <- round( (priceNEPerDay * increasePriceFactor), digits = 2 )
+rm(n, auxPricing)
 # ending block of setting the price constraints per resources #
 
 finalCosts <- data.frame(matrix(ncol=6, nrow=0))
@@ -128,8 +133,11 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
                            SPConfig[3], minHosts, minLinks, minNEs)
       
       Phosts <- decomposeProv(P, "hosts", minHosts)
+      Phosts$price <- round(Phosts$price, digits = 2)
       Plinks <- decomposeProv(P, "links", minLinks)
+      Plinks$price <- round(Plinks$price, digits = 2)
       Pnes <- decomposeProv(P, "nes", minNEs)
+      Pnes$price <- round(Pnes$price, digits = 2)
       
       if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & 
            nrow(Pnes) >= nrow(SPnes) ) {
@@ -235,6 +243,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
     # ending block for a random strategy #
     
     #starting block for first and optimized strategies #
+    
     fHosts <- file(paste("./files/", scenarioName, ".txt", sep = "" ), "w")
     writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), 
                               sep = " ")), con = fHosts, sep = "\n" )
@@ -362,40 +371,46 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       }
       
       # starting block of discounted cost #
-      discountRates <- c(0.1)
+      discountRates <- c(0.1, 0.2, 0.3)
       for ( discountRate in discountRates ) {
 
+        targetCost <- optCost
         responseDis <- responseOpt
         usedOptProvs <- unique(responseOpt$V1)
         
         for ( usedOptProv in usedOptProvs ) {
           
           auxDis <- data.frame(matrix(ncol = 2, nrow = SPConfig[1]))
-          usedLines <- which(responseDis$V1 == usedOptProv)
-          notUsedLines <- which(!responseDis$V1 == usedOptProv)
-          auxDis[usedLines,] <- responseDis[usedLines,]
-          usedResources <- responseDis[responseDis$V1 == usedOptProv,]$V2
-          notUsedResources <- which(!c(1:4) %in% usedResources)
+          usedLines <- which(responseOpt$V1 == usedOptProv)
+          notUsedLines <- which(!responseOpt$V1 == usedOptProv)
+          auxDis[usedLines,] <- responseOpt[usedLines,]
+          usedResources <- responseOpt[responseOpt$V1 == usedOptProv,]$V2
+          notUsedResources <- which( !Phosts[Phosts$providerID == usedOptProv,
+                                             ]$resourceID %in% usedResources )
           
-          for ( demandID in notUsedLines ) {
+          for ( demandLine in notUsedLines ) {
             
-            optPrice <- Phosts[Phosts$providerID == responseOpt[demandID,]$V1 &
-                        Phosts$resourceID == responseOpt[demandID,]$V2, ]$price
+            lastUsedResource <- 0
             
-            for ( resourceID in notUsedResources ) {
+            optPrice <- Phosts[Phosts$providerID == responseOpt[demandLine,]$V1 
+                    & Phosts$resourceID == responseOpt[demandLine,]$V2, ]$price
+            
+            for ( notUsedResource in notUsedResources ) {
               
-              if ( all(SPhosts[demandID, hostsLabels] <= 
+              if ( all(SPhosts[demandLine, hostsLabels] <= 
                    Phosts[Phosts$providerID == usedOptProv & 
-                          Phosts$resourceID == resourceID, hostsLabels]) ) {
+                         Phosts$resourceID == notUsedResource, hostsLabels]) ) {
                 
                 auxPrice <- Phosts[Phosts$providerID == usedOptProv & 
-                            Phosts$resourceID == resourceID, ]$price
+                            Phosts$resourceID == notUsedResource, ]$price
                 disPrice <- auxPrice - (auxPrice * discountRate)
                 
                 if ( disPrice <= optPrice ) {
                   
-                  auxDis[demandID,]$X1 <- usedOptProv
-                  auxDis[demandID,]$X2 <- resourceID
+                  optPrice <- disPrice
+                  lastUsedResource <- notUsedResource
+                  auxDis[demandLine,]$X1 <- usedOptProv
+                  auxDis[demandLine,]$X2 <- notUsedResource
                   
                 }
                 
@@ -403,36 +418,64 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
               
             }
             
+            if ( lastUsedResource != 0 ) {
+              notUsedResources <- notUsedResources[which(notUsedResources 
+                                                         != lastUsedResource)]
+            }
+            
           }
           
           naLines <- which(is.na(auxDis$X1))
-          if ( length(naLines) > 0 ) auxDis[naLines,] <- responseDis[naLines,]
+          if ( length(naLines) > 0 ) auxDis[naLines,] <- responseOpt[naLines,]
           
           auxDisCost <- 0
           disProvID <- 0
           disResID <- 0
-          for (i in 1:nrow(auxDis)) { 
-            disProvID <- auxDis[i,]$X1
-            disResID <- auxDis[i,]$X2
-            auxDisCost <- auxDisCost + 
-              as.numeric(Phosts[Phosts$providerID == disProvID & 
-                                  Phosts$resourceID == disResID,]$price)
-          }
+          diffLines <- which(responseOpt$V1 != auxDis$X1)
           
-          if ( auxDisCost <= optCost ) { 
-            print("entrou")
-            responseDis <- auxDis 
+          for (k in 1:nrow(auxDis)) {
+            
+            disProvID <- auxDis[k,]$X1
+            disResID <- auxDis[k,]$X2
+            tmpCost <- as.numeric(Phosts[Phosts$providerID == disProvID & 
+                                         Phosts$resourceID == disResID,]$price)
+            if ( k %in% diffLines ) {
+              auxDisCost <- auxDisCost + (tmpCost - (tmpCost * discountRate))  
+            }
+            else {
+              auxDisCost <- auxDisCost + tmpCost
+            }
+            
+          }
+          rm(k)
+          
+          if ( auxDisCost <= targetCost ) {
+            responseDis <- auxDis
+            targetCost <- auxDisCost
           }
           
           
         }
         
-        # if ( any(responseOpt != responseDis) ) print("diferente!!!")
+        if ( targetCost > optCost ) print("maior!!!")
         
         # if ( any(auxDis != responseOpt) ) {
         #   print("ERROR: auxDis is different from responseOpt!!!")
         # }
       
+        if ( discountRate == 0.1 ) {
+          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+                  numberOfProviders, turn, length(unique(responseDis$X1)), 4) )  
+        }
+        if ( discountRate == 0.2 ) {
+          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+                  numberOfProviders, turn, length(unique(responseDis$X1)), 5) )  
+        }
+        if ( discountRate == 0.3 ) {
+          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+                  numberOfProviders, turn, length(unique(responseDis$X1)), 6) )  
+        }
+        
       }
       # ending block of discounted cost #
       
@@ -461,34 +504,45 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 colnames(finalReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
 colnames(finalCosts) <- c("demand", "provs", "turn", "opt", "first", "random")
 
-finalRepsCI <- data.frame(matrix(ncol = 5, nrow = 0), stringsAsFactors = FALSE)
+finalRepsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
 finalCostsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
 
 for ( i in unique(finalCosts$provs) ) { 
 
   # '1' means optimized cost
   finalCostsCI <- rbind( finalCostsCI, c(demand, i, 1, 
-           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$opt))) )
+        round(Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$opt)), 
+              digits = 2)) )
   # '2' means first cost
   finalCostsCI <- rbind( finalCostsCI, c(demand, i, 2, 
-           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$first))) )
+        round(Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$first)),
+              digits = 2)) )
   # '3' means random cost
   finalCostsCI <- rbind( finalCostsCI, c(demand, i, 3, 
-           Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$random))) )
+        round(Rmisc::CI(as.numeric(finalCosts[finalCosts$provs == i,]$random)),
+              digits = 2)) )
   
 }
 colnames(finalCostsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
 rm(i)
 
+repsTypes <- c(1, 4, 5, 6)
 for ( i in unique(finalReps$provs) ) { 
   
-  used <- as.numeric(finalReps[finalReps$provs == i,]$used)
-  hosts <- as.numeric(finalReps[finalReps$provs == i,]$hosts)
-  percentage <- used/hosts
-  finalRepsCI <- rbind( finalRepsCI, c(demand, i, Rmisc::CI(percentage)) )
+  for ( repsType in repsTypes ) {
+
+    used <- as.numeric(finalReps[finalReps$provs == i & 
+                                 finalReps$type == repsType,]$used)
+    hosts <- as.numeric(finalReps[finalReps$provs == i & 
+                                  finalReps$type == repsType,]$hosts)
+    percentage <- used/hosts
+    finalRepsCI <- rbind( finalRepsCI, c(demand, i, repsType,
+                          round(Rmisc::CI(percentage), digits = 2)) )
+    
+  }
   
 }
-colnames(finalRepsCI) <- c("demand", "provs", "upper", "mean", "lower")
+colnames(finalRepsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
 rm(i)
 
 # costPlot <- ggplot( finalCostsCI, aes(x=provs, y=mean, ymin=lower, ymax=upper,
