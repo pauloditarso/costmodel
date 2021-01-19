@@ -457,7 +457,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
           
         }
         
-        if ( targetCost > optCost ) print("maior!!!")
+        if ( targetCost > optCost ) print("ERROR: target cost higher than opt cost!!!")
         
         # if ( any(auxDis != responseOpt) ) {
         #   print("ERROR: auxDis is different from responseOpt!!!")
@@ -479,6 +479,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       }
       # ending block of discounted cost #
       
+      # finalDis <- rbind(  )
       finalCosts <- rbind(finalCosts, c(demand, numberOfProviders, turn, 
                                           optCost, firstCost, randomCost))
       turn <- turn + 1
