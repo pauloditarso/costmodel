@@ -111,7 +111,7 @@ rm(n, auxPricing)
 
 finalCosts <- data.frame(matrix(ncol=6, nrow=0))
 finalReps <- data.frame(matrix(ncol=6, nrow=0))
-finalDis <- data.frame(matrix(ncol=6, nrow=0))
+finalDisc <- data.frame(matrix(ncol=6, nrow=0))
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 
@@ -465,34 +465,39 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       
         if ( discountRate == 0.1 ) {
           finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
-                  numberOfProviders, turn, length(unique(responseDis$X1)), 4) )  
+                  numberOfProviders, turn, length(unique(responseDis$X1)), 4) )
+          finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 4,
+                                        targetCost, optCost))
         }
         if ( discountRate == 0.2 ) {
           finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
                   numberOfProviders, turn, length(unique(responseDis$X1)), 5) )  
+          finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 5,
+                                        targetCost, optCost))
         }
         if ( discountRate == 0.3 ) {
           finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
                   numberOfProviders, turn, length(unique(responseDis$X1)), 6) )  
+          finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 6,
+                                        targetCost, optCost))
         }
         
       }
       # ending block of discounted cost #
       
-      # finalDis <- rbind(  )
       finalCosts <- rbind(finalCosts, c(demand, numberOfProviders, turn, 
                                           optCost, firstCost, randomCost))
       turn <- turn + 1
       
-      ## comment for debugging 
-      # rm(optCost, providerID, resourceID, responseOpt, firstCost, 
-      #    auxResID, auxProvID, randomCost)
+      # comment for debugging
+      rm(optCost, providerID, resourceID, responseOpt, firstCost,
+         auxResID, auxProvID, randomCost)
       
     }
     rm(solverCommand, logSolver)
-    ## comment for debugging
-    # rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts,
-       # firstOfferHosts, lastDemandHosts, lastResourceHosts, lastProviderHosts)
+    # comment for debugging
+    rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts,
+    firstOfferHosts, lastDemandHosts, lastResourceHosts, lastProviderHosts)
     
     #starting block for first and optimized strategies #
     
@@ -503,6 +508,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 }
 
 colnames(finalReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
+colnames(finalDisc) <- c("demand", "provs", "turn", "type", "target", "opt")
 colnames(finalCosts) <- c("demand", "provs", "turn", "opt", "first", "random")
 
 finalRepsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
@@ -560,8 +566,8 @@ rm(i)
 #ggsave(paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", 
 #SPConfig[3], ".pdf", sep = ""), plot = costPlot, device = "pdf")
 
-## comment for debugging
-# rm(list=setdiff(ls(), ls(pattern = "final")))
-# save.image()
+# comment for debugging
+rm(list=setdiff(ls(), ls(pattern = "final")))
+save.image()
 
 print(paste("#time end", Sys.time(), sep = " "))
