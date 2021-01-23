@@ -1,7 +1,3 @@
-# A SER IMPLEMENTADO:
-# 01 - AS POLITICAS DE DISPONIBILIDADE E FIDELIDADE PODEM SER IMPLEMENTADAS 
-#      NO ARQUIVO .TXT ANTES DA OTIMIZACAO
-
 print(paste("#time start", Sys.time(), sep = " "))
 
 rm(list = ls())
@@ -20,7 +16,7 @@ demand = switch (as.character(SPConfig[1]),
 )
 
 minNumberOfProviders <- 5
-maxNumberOfProviders <- 10
+maxNumberOfProviders <- 20
 numberOfTurns <- input$V2
 priceHostPerDay <- 0
 priceLinkPerDay <- 0

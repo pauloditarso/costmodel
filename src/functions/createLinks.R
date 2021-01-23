@@ -17,7 +17,7 @@ createLinks <- function(numberOfLinks, minLinks, env) {
 	    delay <- sort(sample(auxDel, size = numberOfLinks, replace = TRUE))
 	  }
 	  
-	  if (minLinks$jit == 4) { jitter <- rep(4, numberOfHosts) }
+	  if (minLinks$jit == 4) { jitter <- rep(4, numberOfLinks) }
 	  else {
 	    auxJit <- vector()
 	    for (i in c(1, 2, 3, 4)) { if(i >= minLinks$jit) auxJit <- c(auxJit, i) }
