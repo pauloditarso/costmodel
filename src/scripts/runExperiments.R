@@ -546,7 +546,21 @@ for ( i in unique(finalReps$provs) ) {
   
 }
 colnames(finalRepsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
-rm(i)
+rm(i, repsTypes)
+
+# finalDiscCI <- data.frame(matrix(nrow = 0, ncol = 6))
+# discTypes <- c(4, 5, 6)
+# providers <- 5:20
+# for ( provider in providers ) {
+# 
+#   for ( discType in discTypes ) {
+#   
+#     targetAux <- as.numeric(allDisc[allDisc$provs == provider & allDisc$type == discType,]$target)
+#     optAux <- as.numeric(allDisc[allDisc$provs == provider & allDisc$type == discType,]$opt)
+#     finalDiscCI <- rbind( finalDiscCI, c(demand, provider, discType, Rmisc::CI(targetAux/optAux)) )
+#     
+#   }
+# }
 
 # costPlot <- ggplot( finalCostsCI, aes(x=provs, y=mean, ymin=lower, ymax=upper,
 #                                     group=type, color = factor(-type)) ) +
