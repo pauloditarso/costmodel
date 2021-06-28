@@ -1,20 +1,20 @@
 # Packages needed
-needed_packages <- c("ggplot2")
+packages_needed <- c("ggplot2")
 
 # Install packages not yet installed
-installed_packages <- needed_packages %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  print(paste(packages[!installed_packages], "not installed!!", sep = " "))
+packages_installed <- packages_needed %in% rownames(installed.packages())
+if (any(packages_installed == FALSE)) {
+  print(paste(packages_needed[!packages_installed], "not installed!!", sep = " "))
   quit()
 }
 
-loaded_packages <- needed_packages %in% .packages()
-if (any(loaded_packages == FALSE)) {
-  invisible(lapply(packages[!loaded_packages], library, character.only = TRUE))
-  rm(installed_packages, loaded_packages, needed_packages)
+packages_loaded <- packages_needed %in% .packages()
+if (any(packages_loaded == FALSE)) {
+  invisible(lapply(packages_needed[!packages_loaded], library, character.only = TRUE))
+  rm(packages_installed, packages_loaded, packages_needed)
 }
 
-rm(installed_packages, loaded_packages, needed_packages)
+rm(packages_installed, packages_loaded, packages_needed)
 
 level_order <- unique(allCostsCI$provs)
 
