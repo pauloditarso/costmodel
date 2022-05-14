@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+files/*.glp
+files/*.opt
+files/*.res
+files/*.txt
