@@ -31,7 +31,7 @@ hostsLabels <- c("cpu", "mem", "str")
 linksLabels <- c("cap", "del", "jit")
 nesLabels <- c("cap", "por", "que")
 
-#set.seed()
+# set.seed()
 
 # starting block of choosing input demand #
 satisfied <- FALSE
@@ -106,8 +106,10 @@ rm(n, auxPricing)
 # ending block of setting the price constraints per resources #
 
 finalCosts <- data.frame(matrix(ncol=6, nrow=0))
-finalReps <- data.frame(matrix(ncol=6, nrow=0))
 finalDisc <- data.frame(matrix(ncol=6, nrow=0))
+finalRepsHosts <- data.frame(matrix(ncol=6, nrow=0))
+finalRepsLinks <- data.frame(matrix(ncol=6, nrow=0))
+finalRepsNEs <- data.frame(matrix(ncol=6, nrow=0))
 
 for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 
@@ -134,29 +136,61 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       Plinks$price <- round(Plinks$price, digits = 2)
       Pnes <- decomposeProv(P, "nes", minNEs)
       Pnes$price <- round(Pnes$price, digits = 2)
-      
+
+      # verifying whether exists enough Host, Link and NE responses
       if ( nrow(Phosts) >= nrow(SPhosts) & nrow(Plinks) >= nrow(SPlinks) & 
            nrow(Pnes) >= nrow(SPnes) ) {
         
-        totalOptions <- vector()
-        for ( i in nrow(SPhosts) ) {
+        # Hosts
+        totalHostsOptions <- vector()
+        numberOfOptions <- 0
+        for ( i in 1:nrow(SPhosts) ) {
           
           numberOfOptions <- nrow(Phosts[Phosts$cpu >= SPhosts[i,]$cpu & 
               Phosts$mem >= SPhosts[i,]$mem & Phosts$str >= SPhosts[i,]$str,])
           
-          totalOptions <- c(totalOptions, numberOfOptions)
+          totalHostsOptions <- c(totalHostsOptions, numberOfOptions)
           
         }
         
-        if ( all(totalOptions != 0) ) satisfied <- TRUE
+        # Links
+        totalLinksOptions <- vector()
+        numberOfOptions <- 0
+        for ( i in 1:nrow(SPlinks) ) {
+          
+          numberOfOptions <- nrow(Plinks[Plinks$cap >= SPlinks[i,]$cap & 
+              Plinks$del >= SPlinks[i,]$del & Plinks$jit >= SPlinks[i,]$jit,])
+          
+          totalLinksOptions <- c(totalLinksOptions, numberOfOptions)
+          
+        }
         
+        # NEs
+        totalNEsOptions <- vector()
+        numberOfOptions <- 0
+        for ( i in 1:nrow(SPnes) ) {
+          
+          numberOfOptions <- nrow(Pnes[Pnes$cap >= SPnes[i,]$cap & 
+              Pnes$por >= SPnes[i,]$por & Pnes$que >= SPnes[i,]$que,])
+          
+          totalNEsOptions <- c(totalNEsOptions, numberOfOptions)
+          
+        }
+
       }
+      
+      if ( all(totalHostsOptions != 0) & all(totalLinksOptions != 0) & 
+           all(totalNEsOptions != 0) ) satisfied <- TRUE
       
     }
     # ending block of setting providers confs #
     
-    scenarioName <- paste("h", "-", SPConfig[1], "-", SPConfig[2], "-", 
-                          SPConfig[3], "-", numberOfProviders, sep = "")
+    scenarioNameHosts <- paste("hosts", "-", SPConfig[1], "-", SPConfig[2], "-", 
+                         SPConfig[3], "-", numberOfProviders, sep = "")
+    scenarioNameLinks <- paste("links", "-", SPConfig[1], "-", SPConfig[2], "-", 
+                         SPConfig[3], "-", numberOfProviders, sep = "")
+    scenarioNameNEs <- paste("nes", "-", SPConfig[1], "-", SPConfig[2], "-", 
+                       SPConfig[3], "-", numberOfProviders, sep = "")
     
     if ( length(unique(Phosts$providerID)) < numberOfProviders |
          length(unique(Plinks$providerID)) < numberOfProviders |
@@ -165,16 +199,21 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       stop("ERROR: less providers than original amount!!!")
     }
 
-    # starting block for hosts #
+    # starting block for hosts, links and NEs #
     
     # starting block for a random strategy #
     
     PhostsAux <- Phosts
+    PlinksAux <- Plinks
+    PnesAux <- Pnes
     randomOfferHosts <- data.frame(matrix(nrow = 0, ncol = 3))
-    foundRandomOfferHosts <- FALSE
+    randomOfferLinks <- data.frame(matrix(nrow = 0, ncol = 3))
+    randomOfferNEs <- data.frame(matrix(nrow = 0, ncol = 3))
+    foundRandomOffer <- FALSE
     
-    while (!foundRandomOfferHosts) {
+    while (!foundRandomOffer) {
       
+      # Hosts
       for ( demandID in nrow(SPhosts):1 ) {
         
         numberOfTrials <- 0
@@ -182,6 +221,7 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         while (!satisfied) {
           
           numberOfTrials <- numberOfTrials + 1
+          # testing whether number of trials is higher than the offer
           if ( numberOfTrials > nrow(Phosts) ) {
             randomOfferHosts <- data.frame(matrix(nrow = 0, ncol = 3))
             PhostsAux <- Phosts
@@ -195,9 +235,12 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
           
           if ( length(setOfChoices) == 1 ) {
             randomRow <- which(rownames(PhostsAux) == setOfChoices)
-          } else {
+          } else if (length(setOfChoices) > 1) {
             randomAux <- sample(setOfChoices, 1)
             randomRow <- which(rownames(PhostsAux) == randomAux)
+          } else {
+            print("ERROR: empty set of choices (Hosts)!!!")
+            stop()
           }
           
           randomSample <- PhostsAux[randomRow, hostsLabels]
@@ -215,50 +258,184 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         
         }
         
+      } # end Hosts
+      
+      # Links
+      for ( demandID in nrow(SPlinks):1 ) {
+        
+        numberOfTrials <- 0
+        satisfied <- FALSE
+        while (!satisfied) {
+          
+          numberOfTrials <- numberOfTrials + 1
+          # testing whether number of trials is higher than the offer
+          if ( numberOfTrials > nrow(Plinks) ) {
+            randomOfferLinks <- data.frame(matrix(nrow = 0, ncol = 3))
+            PlinksAux <- Plinks
+            break 
+          }
+          
+          setOfChoices <- as.numeric(rownames(PlinksAux[PlinksAux$cap >= 
+                          SPlinks[demandID,]$cap & PlinksAux$del >= 
+                          SPlinks[demandID,]$del & PlinksAux$jit >= 
+                          SPlinks[demandID,]$jit,]))
+          
+          if ( length(setOfChoices) == 1 ) {
+            randomRow <- which(rownames(PlinksAux) == setOfChoices)
+          } else if (length(setOfChoices) > 1) {
+            randomAux <- sample(setOfChoices, 1)
+            randomRow <- which(rownames(PlinksAux) == randomAux)
+          } else {
+            print("ERROR: empty set of choices (Links)!!!")
+            stop()
+          }
+          
+          randomSample <- PlinksAux[randomRow, linksLabels]
+          
+          if ( all(SPlinks[demandID, linksLabels] <= 
+                   randomSample) ) {
+            
+            satisfied <- TRUE
+            randomOfferLinks <- rbind( randomOfferLinks, c(demandID, 
+                                        PlinksAux[randomRow,]$providerID, 
+                                        PlinksAux[randomRow,]$resourceID) )
+            PlinksAux <- PlinksAux[-randomRow,]
+            
+          }
+          
+        }
+        
+      } # end Links
+      
+      # NEs
+      for ( demandID in nrow(SPnes):1 ) {
+        
+        numberOfTrials <- 0
+        satisfied <- FALSE
+        while (!satisfied) {
+          
+          numberOfTrials <- numberOfTrials + 1
+          # testing whether number of trials is higher than the offer
+          if ( numberOfTrials > nrow(Pnes) ) {
+            randomOfferNEs <- data.frame(matrix(nrow = 0, ncol = 3))
+            PnesAux <- Pnes
+            break 
+          }
+          
+          setOfChoices <- as.numeric(rownames(PnesAux[PnesAux$cap >= 
+                          SPnes[demandID,]$cap & PnesAux$por >= 
+                          SPnes[demandID,]$por & PnesAux$que >= 
+                          SPnes[demandID,]$que,]))
+          
+          if ( length(setOfChoices) == 1 ) {
+            randomRow <- which(rownames(PnesAux) == setOfChoices)
+          } else if (length(setOfChoices) > 1) {
+            randomAux <- sample(setOfChoices, 1)
+            randomRow <- which(rownames(PnesAux) == randomAux)
+          } else {
+            print("ERROR: empty set of choices (NEs)!!!")
+            stop()
+          }
+          
+          randomSample <- PnesAux[randomRow, nesLabels]
+          
+          if ( all(SPnes[demandID, nesLabels] <= 
+                   randomSample) ) {
+            
+            satisfied <- TRUE
+            randomOfferNEs <- rbind( randomOfferNEs, c(demandID, 
+                                        PnesAux[randomRow,]$providerID, 
+                                        PnesAux[randomRow,]$resourceID) )
+            PnesAux <- PnesAux[-randomRow,]
+            
+          }
+          
+        }
+        
+      } # end NEs
+      
+      if ( nrow(randomOfferHosts) == nrow(SPhosts) &
+           nrow(randomOfferLinks) == nrow(SPlinks) &
+           nrow(randomOfferNEs) == nrow(SPnes) ) {
+        foundRandomOffer <- TRUE
       }
       
-      if ( nrow(randomOfferHosts) == nrow(SPhosts) ) {
-        foundRandomOfferHosts <- TRUE
-      }
-    
     }
     
     colnames(randomOfferHosts) <- c("demandID", "providerID", "resourceID")
+    colnames(randomOfferLinks) <- c("demandID", "providerID", "resourceID")
+    colnames(randomOfferNEs) <- c("demandID", "providerID", "resourceID")
     
-    randomCost <- 0
+    randomCost <- 0; 
     auxProvID <- 0; auxResID <- 0
     for ( i in 1:nrow(randomOfferHosts) ) {
       auxProvID <- randomOfferHosts[i,]$providerID
       auxResID <- randomOfferHosts[i,]$resourceID
       randomCost <- randomCost + (Phosts[Phosts$providerID == auxProvID & 
-                                         Phosts$resourceID == auxResID,]$price) 
+                                  Phosts$resourceID == auxResID,]$price) 
+    }
+    auxProvID <- 0; auxResID <- 0
+    for ( i in 1:nrow(randomOfferLinks) ) {
+      auxProvID <- randomOfferLinks[i,]$providerID
+      auxResID <- randomOfferLinks[i,]$resourceID
+      randomCost <- randomCost + (Plinks[Plinks$providerID == auxProvID & 
+                                  Plinks$resourceID == auxResID,]$price) 
+    }
+    auxProvID <- 0; auxResID <- 0
+    for ( i in 1:nrow(randomOfferNEs) ) {
+      auxProvID <- randomOfferNEs[i,]$providerID
+      auxResID <- randomOfferNEs[i,]$resourceID
+      randomCost <- randomCost + (Pnes[Pnes$providerID == auxProvID & 
+                                  Pnes$resourceID == auxResID,]$price) 
     }
     
-    rm(PhostsAux, randomOfferHosts, auxProvID, auxResID)
+    rm(PhostsAux, PlinksAux, PnesAux, auxProvID, auxResID,
+       randomOfferHosts, randomOfferLinks, randomOfferNEs)
     
     # ending block for a random strategy #
     
     #starting block for first and optimized strategies #
     
-    fHosts <- file(paste("./files/", scenarioName, ".txt", sep = "" ), "w")
-    writeLines( noquote(paste(length(unique(Phosts$providerID)), nrow(SPhosts), 
-                              sep = " ")), con = fHosts, sep = "\n" )
+    fHosts <- file(paste("./files/", scenarioNameHosts, ".txt", sep = "" ), "w")
+    fLinks <- file(paste("./files/", scenarioNameLinks, ".txt", sep = "" ), "w")
+    fNEs <- file(paste("./files/", scenarioNameNEs, ".txt", sep = "" ), "w")
+    
+    writeLines( noquote(paste(length(unique(Phosts$providerID)), 
+                nrow(SPhosts), sep = " ")), con = fHosts, sep = "\n" )
+    writeLines( noquote(paste(length(unique(Plinks$providerID)), 
+                nrow(SPlinks), sep = " ")), con = fLinks, sep = "\n" )
+    writeLines( noquote(paste(length(unique(Pnes$providerID)), 
+                nrow(SPnes), sep = " ")), con = fNEs, sep = "\n" )
   
     firstOfferHosts <- data.frame(matrix(nrow = 0, ncol = 3))
+    firstOfferLinks <- data.frame(matrix(nrow = 0, ncol = 3))
+    firstOfferNEs <- data.frame(matrix(nrow = 0, ncol = 3))
+    
     foundFirstOfferHosts <- FALSE
+    foundFirstOfferLinks <- FALSE
+    foundFirstOfferNEs <- FALSE
+    
     lastDemandHosts <- 0
     lastResourceHosts <- 0
     lastProviderHosts <- 0
     
+    lastDemandLinks <- 0
+    lastResourceLinks <- 0
+    lastProviderLinks <- 0
+    
+    lastDemandNEs <- 0
+    lastResourceNEs <- 0
+    lastProviderNEs <- 0
+    
+    # Hosts
     for ( providerID in unique(Phosts$providerID) ) {
       
-      finalStr <- "{"
+      finalStrHosts <- "{"
       
       for (resourceID in Phosts[Phosts$providerID == providerID, ]$resourceID) {
         
         auxProvResource <- Phosts[Phosts$providerID == providerID & 
-                                    Phosts$resourceID == resourceID, 
-                                  c("cpu", "mem", "str", "price")]
+              Phosts$resourceID == resourceID, c("cpu", "mem", "str", "price")]
         auxCond <- FALSE
         auxStr <- ""
         
@@ -297,53 +474,231 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
         
         colnames(firstOfferHosts) <- c("providerID", "resourceID", "demandID")
         
-        if ( auxCond == TRUE ) { finalStr <- paste(finalStr, auxStr, ":", 
-                                                   auxProvResource["price"], 
-                                                   sep = " ") }
+        if ( auxCond == TRUE ) { finalStrHosts <- paste(finalStrHosts, 
+                          auxStr, ":", auxProvResource["price"], sep = " ") }
         
         if ( resourceID != 
              tail(Phosts[Phosts$providerID == providerID, ]$resourceID, n=1)) {
-          finalStr <- paste(finalStr, ";", sep = " ")
+          finalStrHosts <- paste(finalStrHosts, ";", sep = " ")
         }
         else {
-          finalStr <- paste(finalStr, "}", sep = " ") 
+          finalStrHosts <- paste(finalStrHosts, "}", sep = " ") 
         }
         
       }
       
-      writeLines( noquote(finalStr), con = fHosts, sep = "\n" )
-    }
+      writeLines( noquote(finalStrHosts), con = fHosts, sep = "\n" )
+    
+    } # end Hosts
+    
+    # Links
+    for ( providerID in unique(Plinks$providerID) ) {
+      
+      finalStrLinks <- "{"
+      
+      for (resourceID in Plinks[Plinks$providerID == providerID, ]$resourceID) {
+        
+        auxProvResource <- Plinks[Plinks$providerID == providerID & 
+              Plinks$resourceID == resourceID, c("cap", "del", "jit", "price")]
+        auxCond <- FALSE
+        auxStr <- ""
+        
+        for ( demandID in 1:nrow(SPlinks) ) {
+          
+          if ( all( auxProvResource[linksLabels] >= 
+                    SPlinks[demandID, linksLabels] ) ) {
+            
+            if ( nrow(firstOfferLinks) == nrow(SPlinks) ) {
+              foundFirstOfferLinks <- TRUE
+            }            
+            if ( (!foundFirstOfferLinks) & (lastDemandLinks < demandID) ) {
+              
+              if (lastProviderLinks != providerID | 
+                  lastResourceLinks != resourceID) {
+                firstOfferLinks <- rbind( firstOfferLinks, 
+                                          c(providerID, resourceID, demandID) )
+                lastDemandLinks <- demandID
+                lastResourceLinks <- resourceID
+                lastProviderLinks <- providerID
+              }
+              
+            }
+            
+            if ( auxCond == FALSE ) {
+              auxStr <- paste(demandID-1)
+            }
+            else {
+              auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
+            }
+            auxCond <- TRUE
+            
+          }
+          
+        }
+        
+        colnames(firstOfferLinks) <- c("providerID", "resourceID", "demandID")
+        
+        if ( auxCond == TRUE ) { 
+          finalStrLinks <- paste(finalStrLinks, auxStr, ":", 
+                            auxProvResource["price"], sep = " ") }
+        
+        if ( resourceID != 
+             tail(Plinks[Plinks$providerID == providerID, ]$resourceID, n=1)) {
+          finalStrLinks <- paste(finalStrLinks, ";", sep = " ")
+        }
+        else {
+          finalStrLinks <- paste(finalStrLinks, "}", sep = " ") 
+        }
+        
+      }
+      
+      writeLines( noquote(finalStrLinks), con = fLinks, sep = "\n" )
+      
+    } # end Links
+    
+    # NEs
+    for ( providerID in unique(Pnes$providerID) ) {
+      
+      finalStrNEs <- "{"
+      
+      for (resourceID in Pnes[Pnes$providerID == providerID, ]$resourceID) {
+        
+        auxProvResource <- Pnes[Pnes$providerID == providerID & 
+                Pnes$resourceID == resourceID, c("cap", "por", "que", "price")]
+        auxCond <- FALSE
+        auxStr <- ""
+        
+        for ( demandID in 1:nrow(SPnes) ) {
+          
+          if ( all( auxProvResource[nesLabels] >= 
+                    SPnes[demandID, nesLabels] ) ) {
+            
+            if ( nrow(firstOfferNEs) == nrow(SPnes) ) {
+              foundFirstOfferNEs <- TRUE
+            }            
+            if ( (!foundFirstOfferNEs) & (lastDemandNEs < demandID) ) {
+              
+              if (lastProviderNEs != providerID | 
+                  lastResourceNEs != resourceID) {
+                firstOfferNEs <- rbind( firstOfferNEs, 
+                                        c(providerID, resourceID, demandID) )
+                lastDemandNEs <- demandID
+                lastResourceNEs <- resourceID
+                lastProviderNEs <- providerID
+              }
+              
+            }
+            
+            if ( auxCond == FALSE ) {
+              auxStr <- paste(demandID-1)
+            }
+            else {
+              auxStr <- paste(auxStr, ",", (demandID-1), sep = "")  
+            }
+            auxCond <- TRUE
+            
+          }
+          
+        }
+        
+        colnames(firstOfferNEs) <- c("providerID", "resourceID", "demandID")
+        
+        if ( auxCond == TRUE ) { 
+          finalStrNEs <- paste(finalStrNEs, auxStr, ":", 
+                                 auxProvResource["price"], sep = " ") }
+        
+        if ( resourceID != 
+             tail(Pnes[Pnes$providerID == providerID, ]$resourceID, n=1)) {
+          finalStrNEs <- paste(finalStrNEs, ";", sep = " ")
+        }
+        else {
+          finalStrNEs <- paste(finalStrNEs, "}", sep = " ") 
+        }
+        
+      }
+      
+      writeLines( noquote(finalStrNEs), con = fNEs, sep = "\n" )
+      
+    } # end NEs
+    
     close(fHosts)
-    rm(fHosts, providerID, resourceID, demandID, finalStr, 
-       auxCond, auxStr, auxProvResource)
+    close(fLinks)
+    close(fNEs)
+    rm(fHosts, fLinks, fNEs, providerID, resourceID, demandID, auxCond, auxStr, 
+       finalStrHosts, finalStrLinks, finalStrNEs, auxProvResource)
     
-    bashCommand <- paste("bash files/count.sh files/", 
-                         scenarioName, ".txt", sep = "")
-    testBash <- as.numeric(system(bashCommand, intern = TRUE))
-    testProv <- tabulate(Phosts$providerID)
-    if (any(testBash != testProv)) { print("ERROR: tests are different!!!") }
-    rm(bashCommand, testBash, testProv)
+    bashCommandHosts <- paste("bash files/count.sh files/", 
+                         scenarioNameHosts, ".txt", sep = "")
+    testBashHosts <- as.numeric(system(bashCommandHosts, intern = TRUE))
+    testProvHosts <- tabulate(Phosts$providerID)
+    if (any(testBashHosts != testProvHosts)) { 
+      print("ERROR: Hosts tests are different!!!") 
+    }
+    rm(bashCommandHosts, testBashHosts, testProvHosts)
     
-    solverCommand <- paste("bash solver/gera.sh files/", 
-                           scenarioName, ".txt", sep = "" )
-    logSolver <- system(solverCommand, intern = TRUE)
+    bashCommandLinks <- paste("bash files/count.sh files/", 
+                         scenarioNameLinks, ".txt", sep = "")
+    testBashLinks <- as.numeric(system(bashCommandLinks, intern = TRUE))
+    testProvLinks <- tabulate(Plinks$providerID)
+    if (any(testBashLinks != testProvLinks)) { 
+      print("ERROR: Links tests are different!!!") 
+    }
+    rm(bashCommandLinks, testBashLinks, testProvLinks)
     
-    if ( file.info(paste("files/", scenarioName, ".opt", sep = ""))$size != 0 & 
-         nrow(firstOfferHosts) == nrow(SPhosts) ) {
+    bashCommandNEs <- paste("bash files/count.sh files/", 
+                         scenarioNameNEs, ".txt", sep = "")
+    testBashNEs <- as.numeric(system(bashCommandNEs, intern = TRUE))
+    testProvNEs <- tabulate(Pnes$providerID)
+    if (any(testBashNEs != testProvNEs)) { 
+      print("ERROR: NEs tests are different!!!") 
+    }
+    rm(bashCommandNEs, testBashNEs, testProvNEs)
+    
+    solverCommandHosts <- paste("bash solver/gera.sh files/", 
+                           scenarioNameHosts, ".txt", sep = "" )
+    logSolverHosts <- system(solverCommandHosts, intern = TRUE)
+    
+    solverCommandLinks <- paste("bash solver/gera.sh files/", 
+                           scenarioNameLinks, ".txt", sep = "" )
+    logSolverLinks <- system(solverCommandLinks, intern = TRUE)
+    
+    solverCommandNEs <- paste("bash solver/gera.sh files/", 
+                           scenarioNameNEs, ".txt", sep = "" )
+    logSolverNEs <- system(solverCommandNEs, intern = TRUE)
+    
+    if ( file.info(paste("files/", scenarioNameHosts, ".opt", sep = ""))$size 
+         != 0 & nrow(firstOfferHosts) == nrow(SPhosts) &
+         file.info(paste("files/", scenarioNameLinks, ".opt", sep = ""))$size 
+         != 0 & nrow(firstOfferLinks) == nrow(SPlinks) &
+         file.info(paste("files/", scenarioNameNEs, ".opt", sep = ""))$size 
+         != 0 & nrow(firstOfferNEs) == nrow(SPnes)
+       ) 
+    {
       
-      responseOpt <- read.csv(paste("files/", scenarioName, ".opt", sep = ""), 
-                              header = F)
+      responseOptHosts <- read.csv(paste("files/", scenarioNameHosts, ".opt", 
+                                    sep = ""), header = F)
+      finalRepsHosts <- rbind( finalRepsHosts, c(demand, SPConfig[1], 
+              numberOfProviders, turn, length(unique(responseOptHosts$V1)), 1) )
+
+      responseOptLinks <- read.csv(paste("files/", scenarioNameLinks, ".opt", 
+                                    sep = ""), header = F)
+      finalRepsLinks <- rbind( finalRepsLinks, c(demand, SPConfig[2], 
+              numberOfProviders, turn, length(unique(responseOptLinks$V1)), 1) )
+
+      responseOptNEs <- read.csv(paste("files/", scenarioNameNEs, ".opt", 
+                                    sep = ""), header = F)
+      finalRepsNEs <- rbind( finalRepsNEs, c(demand, SPConfig[3], 
+              numberOfProviders, turn, length(unique(responseOptNEs$V1)), 1) )
       
-      finalReps <- rbind( finalReps, c(demand, SPConfig[1], numberOfProviders, 
-                                turn, length(unique(responseOpt$V1)), 1) )
-      
+      #### parei aqui hoje 26/05/22
+
       # starting block of optimized cost
       optCost <- 0
       providerID <- 0
       resourceID <- 0
-      for (i in 1:nrow(responseOpt)) { 
-        providerID <- responseOpt[i,]$V1
-        resourceID <- responseOpt[i,]$V2
+      for (i in 1:nrow(responseOptHosts)) { 
+        providerID <- responseOptHosts[i,]$V1
+        resourceID <- responseOptHosts[i,]$V2
         optCost <- optCost + 
           as.numeric(Phosts[Phosts$providerID == providerID & 
                               Phosts$resourceID == resourceID,]$price)
@@ -371,16 +726,16 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       for ( discountRate in discountRates ) {
 
         targetCost <- optCost
-        responseDis <- responseOpt
-        usedOptProvs <- unique(responseOpt$V1)
+        responseDis <- responseOptHosts
+        usedOptProvs <- unique(responseOptHosts$V1)
         
         for ( usedOptProv in usedOptProvs ) {
           
           auxDis <- data.frame(matrix(ncol = 2, nrow = SPConfig[1]))
-          usedLines <- which(responseOpt$V1 == usedOptProv)
-          notUsedLines <- which(!responseOpt$V1 == usedOptProv)
-          auxDis[usedLines,] <- responseOpt[usedLines,]
-          usedResources <- responseOpt[responseOpt$V1 == usedOptProv,]$V2
+          usedLines <- which(responseOptHosts$V1 == usedOptProv)
+          notUsedLines <- which(!responseOptHosts$V1 == usedOptProv)
+          auxDis[usedLines,] <- responseOptHosts[usedLines,]
+          usedResources <- responseOptHosts[responseOptHosts$V1 == usedOptProv,]$V2
           notUsedResources <- which( !Phosts[Phosts$providerID == usedOptProv,
                                              ]$resourceID %in% usedResources )
           
@@ -388,8 +743,8 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
             
             lastUsedResource <- 0
             
-            optPrice <- Phosts[Phosts$providerID == responseOpt[demandLine,]$V1 
-                    & Phosts$resourceID == responseOpt[demandLine,]$V2, ]$price
+            optPrice <- Phosts[Phosts$providerID == responseOptHosts[demandLine,]$V1 
+                    & Phosts$resourceID == responseOptHosts[demandLine,]$V2, ]$price
             
             for ( notUsedResource in notUsedResources ) {
               
@@ -422,12 +777,12 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
           }
           
           naLines <- which(is.na(auxDis$X1))
-          if ( length(naLines) > 0 ) auxDis[naLines,] <- responseOpt[naLines,]
+          if ( length(naLines) > 0 ) auxDis[naLines,] <- responseOptHosts[naLines,]
           
           auxDisCost <- 0
           disProvID <- 0
           disResID <- 0
-          diffLines <- which(responseOpt$V1 != auxDis$X1)
+          diffLines <- which(responseOptHosts$V1 != auxDis$X1)
           
           for (k in 1:nrow(auxDis)) {
             
@@ -453,26 +808,28 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
           
         }
         
-        if ( targetCost > optCost ) print("ERROR: target cost higher than opt cost!!!")
+        if ( targetCost > optCost ) { 
+          print("ERROR: target cost higher than opt cost!!!")
+        }
         
-        # if ( any(auxDis != responseOpt) ) {
-        #   print("ERROR: auxDis is different from responseOpt!!!")
+        # if ( any(auxDis != responseOptHosts) ) {
+        #   print("ERROR: auxDis is different from responseOptHosts!!!")
         # }
       
         if ( discountRate == 0.1 ) {
-          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+          finalRepsHosts <- rbind( finalRepsHosts, c(demand, SPConfig[1], 
                   numberOfProviders, turn, length(unique(responseDis$X1)), 4) )
           finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 4,
                                         targetCost, optCost))
         }
         if ( discountRate == 0.2 ) {
-          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+          finalRepsHosts <- rbind( finalRepsHosts, c(demand, SPConfig[1], 
                   numberOfProviders, turn, length(unique(responseDis$X1)), 5) )  
           finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 5,
                                         targetCost, optCost))
         }
         if ( discountRate == 0.3 ) {
-          finalReps <- rbind( finalReps, c(demand, SPConfig[1], 
+          finalRepsHosts <- rbind( finalRepsHosts, c(demand, SPConfig[1], 
                   numberOfProviders, turn, length(unique(responseDis$X1)), 6) )  
           finalDisc <- rbind(finalDisc, c(demand, numberOfProviders, turn, 6,
                                         targetCost, optCost))
@@ -486,11 +843,13 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
       turn <- turn + 1
       
       # comment for debugging
-      rm(optCost, providerID, resourceID, responseOpt, firstCost,
+      rm(optCost, providerID, resourceID, responseOptHosts, firstCost,
          auxResID, auxProvID, randomCost)
       
     }
-    rm(solverCommand, logSolver)
+    
+    rm(solverCommandHosts, solverCommandLinks, solverCommandNEs, 
+       logSolverHosts, logSolverLinks, logSolverNEs)
     # comment for debugging
     rm(numberOfTrials, P, Phosts, Plinks, Pnes, satisfied, foundFirstOfferHosts,
     firstOfferHosts, lastDemandHosts, lastResourceHosts, lastProviderHosts)
@@ -503,11 +862,17 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
   
 }
 
-colnames(finalReps) <- c("demand", "hosts", "provs", "turn", "used", "type")
-colnames(finalDisc) <- c("demand", "provs", "turn", "type", "target", "opt")
 colnames(finalCosts) <- c("demand", "provs", "turn", "opt", "first", "random")
+colnames(finalDisc) <- c("demand", "provs", "turn", "type", "target", "opt")
+colnames(finalRepsHosts) <- c("demand", "hosts", "provs", 
+                              "turn", "used", "type")
+colnames(finalRepsLinks) <- c("demand", "hosts", "provs", 
+                              "turn", "used", "type")
+colnames(finalRepsNEs) <- c("demand", "hosts", "provs", 
+                              "turn", "used", "type")
 
-finalRepsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
+finalRepsHostsCI <- data.frame(matrix(ncol = 6, nrow = 0), 
+                               stringsAsFactors = FALSE)
 finalCostsCI <- data.frame(matrix(ncol = 6, nrow = 0), stringsAsFactors = FALSE)
 
 for ( i in unique(finalCosts$provs) ) { 
@@ -530,22 +895,23 @@ colnames(finalCostsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
 rm(i)
 
 repsTypes <- c(1, 4, 5, 6)
-for ( i in unique(finalReps$provs) ) { 
+for ( i in unique(finalRepsHosts$provs) ) { 
   
   for ( repsType in repsTypes ) {
 
-    used <- as.numeric(finalReps[finalReps$provs == i & 
-                                 finalReps$type == repsType,]$used)
-    hosts <- as.numeric(finalReps[finalReps$provs == i & 
-                                  finalReps$type == repsType,]$hosts)
+    used <- as.numeric(finalRepsHosts[finalRepsHosts$provs == i & 
+                                 finalRepsHosts$type == repsType,]$used)
+    hosts <- as.numeric(finalRepsHosts[finalRepsHosts$provs == i & 
+                                  finalRepsHosts$type == repsType,]$hosts)
     percentage <- used/hosts
-    finalRepsCI <- rbind( finalRepsCI, c(demand, i, repsType,
+    finalRepsHostsCI <- rbind( finalRepsHostsCI, c(demand, i, repsType,
                           round(Rmisc::CI(percentage), digits = 2)) )
     
   }
   
 }
-colnames(finalRepsCI) <- c("demand", "provs", "type", "upper", "mean", "lower")
+colnames(finalRepsHostsCI) <- c("demand", "provs", "type", 
+                                "upper", "mean", "lower")
 rm(i, repsTypes)
 
 # finalDiscCI <- data.frame(matrix(nrow = 0, ncol = 6))
@@ -555,11 +921,20 @@ rm(i, repsTypes)
 # 
 #   for ( discType in discTypes ) {
 #   
-#     targetAux <- as.numeric(allDisc[allDisc$provs == provider & allDisc$type == discType,]$target)
-#     optAux <- as.numeric(allDisc[allDisc$provs == provider & allDisc$type == discType,]$opt)
-#     finalDiscCI <- rbind( finalDiscCI, c(demand, provider, discType, Rmisc::CI(targetAux/optAux)) )
+#     targetAux <- as.numeric(allDisc[allDisc$provs == provider & 
+#                             allDisc$type == discType,]$target)
+#     optAux <- as.numeric(allDisc[allDisc$provs == provider & 
+#                          allDisc$type == discType,]$opt)
+#     finalDiscCI <- rbind( finalDiscCI, 
+#                           c(demand, 
+#                             provider, 
+#                             discType, 
+#                             Rmisc::CI(targetAux/optAux)
+#                            ) 
+#                         )
 #     
 #   }
+# 
 # }
 
 # costPlot <- ggplot( finalCostsCI, aes(x=provs, y=mean, ymin=lower, ymax=upper,
