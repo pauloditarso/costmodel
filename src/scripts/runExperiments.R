@@ -179,8 +179,10 @@ for (numberOfProviders in minNumberOfProviders:maxNumberOfProviders) {
 
       }
       
-      if ( all(totalHostsOptions != 0) & all(totalLinksOptions != 0) & 
-           all(totalNEsOptions != 0) ) satisfied <- TRUE
+      if ( all(totalHostsOptions >= SPConfig[1]) & 
+           all(totalLinksOptions >= SPConfig[2]) & 
+           all(totalNEsOptions >= SPConfig[3]) ) 
+        satisfied <- TRUE
       
     }
     # ending block of setting providers confs #
